@@ -9,7 +9,11 @@
         <mat-card-subtitle>{{ entry.company }}</mat-card-subtitle>
         <div class="tools">
           <ng-container *ngFor="let tool of entry.tools">
-            <img class="tool-image" src="/assets/tools/{{ tool }}.svg" />
+            <img
+              alt="{{ tool }} logo"
+              class="tool-image"
+              src="/assets/tools/{{ tool }}.svg"
+            />
           </ng-container>
         </div>
         <mat-card-content>{{ entry.content }}</mat-card-content>
