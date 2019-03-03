@@ -19,7 +19,7 @@ export class ProjectspageComponent {
       company: 'Global Oil & Gas Company',
       content: `Worked on an existing React app and acted as the liaison for the offshore back-end development team. Created User Stories and directed the back-end team on what areas to focus on and expected payloads, database table structure, and more.
       Currently working on React Native version of the app, on a separate codebase. Backend is written in .NET Core, but is maintained by the offshore team.`,
-      tools: ['aws', 'react', 'typescript', 'nodejs', 'git'],
+      tools: ['react', 'typescript', 'aws', 'nodejs', 'git'],
     },
     {
       header: 'Intrepid Project 4',
