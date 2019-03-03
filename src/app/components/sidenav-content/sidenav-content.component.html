@@ -1,14 +1,22 @@
 <nav>
-  <mat-list>
-    <mat-list-item routerLink="/" (click)="routeClicked()">
+  <mat-list role="list">
+    <mat-list-item role="listitem" routerLink="/" (click)="routeClicked()">
       about me
     </mat-list-item>
     <mat-divider></mat-divider>
-    <mat-list-item routerLink="/experience" (click)="routeClicked()">
+    <mat-list-item
+      role="listitem"
+      routerLink="/experience"
+      (click)="routeClicked()"
+    >
       experience
     </mat-list-item>
     <mat-divider></mat-divider>
-    <mat-list-item routerLink="/projects" (click)="routeClicked()">
+    <mat-list-item
+      role="listitem"
+      routerLink="/projects"
+      (click)="routeClicked()"
+    >
       projects
     </mat-list-item>
   </mat-list>

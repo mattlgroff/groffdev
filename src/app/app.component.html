@@ -1,5 +1,9 @@
 <mat-sidenav-container class="container" (backdropClick)="toggleOpen()">
-  <mat-sidenav opened="{{ opened }}" (keydown.escape)="toggleOpen()">
+  <mat-sidenav
+    [autoFocus]="false"
+    opened="{{ opened }}"
+    (keydown.escape)="toggleOpen()"
+  >
     <div class="close">
       <span class="close-btn" (click)="toggleOpen()">
         &times;
@@ -18,7 +22,7 @@
   <mat-sidenav-content>
     <mat-toolbar color="primary">
       <span class="toggle" (click)="toggleOpen()">&#9776;</span>
-      <span class="title" routerLink="/">matt groff</span>
+      <span class="title">matt groff</span>
     </mat-toolbar>
     <router-outlet></router-outlet>
   </mat-sidenav-content>

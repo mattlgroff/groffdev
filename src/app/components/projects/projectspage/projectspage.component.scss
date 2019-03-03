@@ -1,7 +1,5 @@
 .tool-image {
   border-color: #6b1cb5 !important;
-  // border: 2px solid;
-  // box-shadow: 7px 7px 4px #6b1cb5;
   height: 30px;
   margin-bottom: 10px;
   margin-right: 10px;
@@ -10,6 +8,7 @@
 
 .title {
   text-align: center;
+  -webkit-user-select: none;
 }
 
 .card-container {
