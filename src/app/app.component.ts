@@ -7,4 +7,8 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   public opened = false;
+
+  public toggleOpen(): void {
+    this.opened = !this.opened;
+  }
 }

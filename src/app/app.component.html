@@ -1,14 +1,18 @@
-<div class="app-content">
-  <mat-sidenav-container>
-    <mat-sidenav mode="side" opened="{{ opened }}">
-      <app-sidenav-content></app-sidenav-content>
-    </mat-sidenav>
-    <mat-sidenav-content>
-      <mat-toolbar color="primary">
-        <span class="toggle" (click)="opened = !opened">&#9776;</span>
-        <span class="title">matt groff</span>
-      </mat-toolbar>
-      <router-outlet></router-outlet>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
-</div>
+<mat-sidenav-container class="container" (backdropClick)="toggleOpen()">
+  <mat-sidenav opened="{{ opened }}" (keydown.escape)="toggleOpen()">
+    <div class="close">
+      <span class="close-btn" (click)="toggleOpen()">
+        &times;
+      </span>
+    </div>
+    <app-sidenav-content></app-sidenav-content>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <span class="toggle" (click)="toggleOpen()">&#9776;</span>
+      <span class="title">matt groff</span>
+    </mat-toolbar>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>
