@@ -8,7 +8,11 @@ const routes: Routes = [
     path: 'projects',
     loadChildren: './components/projects/projects.module#ProjectsModule',
   },
-  { path: 'contact', component: HomeComponent },
+  {
+    path: 'experience',
+    loadChildren:
+      './components/experiences/experiences.module#ExperiencesModule',
+  },
 ];
 
 @NgModule({
