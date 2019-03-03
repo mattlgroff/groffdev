@@ -1,3 +1,17 @@
-<p>
-  projectspage works!
-</p>
+<div class="projects-page">
+  <mat-toolbar class="title" color="action">
+    <span>project experience</span>
+  </mat-toolbar>
+  <div class="card-container">
+    <mat-card class="card" *ngFor="let entry of entries">
+      <mat-card-title>{{ entry.header }}</mat-card-title>
+      <mat-card-subtitle>{{ entry.company }}</mat-card-subtitle>
+      <div class="tools">
+        <ng-container *ngFor="let tool of entry.tools">
+          <img class="tool-image" src="/assets/tools/{{ tool }}.svg" />
+        </ng-container>
+      </div>
+      <mat-card-content>{{ entry.content }}</mat-card-content>
+    </mat-card>
+  </div>
+</div>
