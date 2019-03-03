@@ -29,3 +29,13 @@
     margin-right: 5px;
   }
 }
+
+.image-container {
+  .image {
+    display: block;
+    margin: auto;
+    border-radius: 50%;
+    height: 100px;
+    width: 100px;
+  }
+}

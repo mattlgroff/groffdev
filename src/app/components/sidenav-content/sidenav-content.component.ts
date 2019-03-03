@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-sidenav-content',
@@ -6,5 +6,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./sidenav-content.component.scss'],
 })
 export class SidenavContentComponent {
-  constructor() {}
+  @Output() routeClick: EventEmitter<any> = new EventEmitter();
+
+  public routeClicked(): void {
+    this.routeClick.emit(null);
+  }
 }

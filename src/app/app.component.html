@@ -5,7 +5,14 @@
         &times;
       </span>
     </div>
-    <app-sidenav-content></app-sidenav-content>
+    <div class="image-container">
+      <img
+        src="/assets/profile-pic.jpg"
+        alt="picture of matt groff"
+        class="image"
+      />
+    </div>
+    <app-sidenav-content (routeClick)="toggleOpen()"></app-sidenav-content>
   </mat-sidenav>
 
   <mat-sidenav-content>
