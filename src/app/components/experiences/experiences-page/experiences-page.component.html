@@ -1,11 +1,13 @@
 <mat-toolbar class="title">
-  <span>experience</span>
+  <header><span>experience</span></header>
 </mat-toolbar>
 
-<div class="card-container top">
-  <mat-card class="card" *ngFor="let entry of experiences">
-    <mat-card-title>{{ entry.header }}</mat-card-title>
-    <mat-card-subtitle>{{ entry.date }}</mat-card-subtitle>
-    <mat-card-content>{{ entry.content }}</mat-card-content>
-  </mat-card>
-</div>
+<main>
+  <div class="card-container top">
+    <mat-card class="card" *ngFor="let entry of experiences">
+      <mat-card-title>{{ entry.header }}</mat-card-title>
+      <mat-card-subtitle>{{ entry.date }}</mat-card-subtitle>
+      <mat-card-content>{{ entry.content }}</mat-card-content>
+    </mat-card>
+  </div>
+</main>

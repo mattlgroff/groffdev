@@ -1,15 +1,18 @@
-<mat-list>
-  <mat-list-item routerLink="/" (click)="routeClicked()">
-    about me
-  </mat-list-item>
-  <mat-divider></mat-divider>
-  <mat-list-item routerLink="/experience" (click)="routeClicked()">
-    experience
-  </mat-list-item>
-  <mat-divider></mat-divider>
-  <mat-list-item routerLink="/projects" (click)="routeClicked()">
-    projects
-  </mat-list-item>
-</mat-list>
-
-<div class="footer">© {{ currentYear | date: 'yyyy' }} Matthew Groff</div>
+<nav>
+  <mat-list>
+    <mat-list-item routerLink="/" (click)="routeClicked()">
+      about me
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <mat-list-item routerLink="/experience" (click)="routeClicked()">
+      experience
+    </mat-list-item>
+    <mat-divider></mat-divider>
+    <mat-list-item routerLink="/projects" (click)="routeClicked()">
+      projects
+    </mat-list-item>
+  </mat-list>
+</nav>
+<footer>
+  <div class="footer">© {{ currentYear | date: 'yyyy' }} Matthew Groff</div>
+</footer>
