@@ -9,6 +9,9 @@
     margin-bottom: 15px;
   }
 }
+.top {
+  margin-top: -12px;
+}
 
 .image-container {
   .image {
@@ -18,4 +21,8 @@
     height: 100px;
     width: 100px;
   }
+}
+
+.mat-list-item {
+  height: 45px;
 }

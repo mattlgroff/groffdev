@@ -47,7 +47,6 @@ export class ProjectspageComponent {
         'angular',
         'heroku',
         'postgres',
-        'redis',
         'typescript',
         'nodejs',
         'sass',

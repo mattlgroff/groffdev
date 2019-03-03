@@ -8,6 +8,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
 export class SidenavContentComponent {
   @Output() routeClick: EventEmitter<any> = new EventEmitter();
 
+  public currentYear: Date = new Date();
   public routeClicked(): void {
     this.routeClick.emit(null);
   }
