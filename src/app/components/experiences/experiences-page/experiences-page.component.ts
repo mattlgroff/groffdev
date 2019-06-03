@@ -13,16 +13,10 @@ interface Experience {
 export class ExperiencesPageComponent {
   public experiences: Experience[] = [
     {
-      header: 'Intrepid - Web Developer',
-      date: 'September 2018 - Present Day!',
+      header: 'Intrepid (Accenture Digital Products) - Web Developer',
+      date: 'June 2018 - Present Day!',
       content:
         'Intrepid hired me on as a Web Developer. I work on tons of different projects and work with great people at the Houston Innovation Hub.',
-    },
-    {
-      header: 'Intrepid - Web Developer Apprentice',
-      date: 'June 2018',
-      content:
-        'I began at Intrepid in June 2018 as a Web Developer Apprentice.',
     },
     {
       header: 'UC San Diego Extension Coding Bootcamp',
