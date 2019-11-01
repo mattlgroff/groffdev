@@ -17,9 +17,8 @@ export class ProjectspageComponent {
     {
       header: 'Intrepid Project 5',
       company: 'Global Oil & Gas Company',
-      content: `Worked on an existing React app and acted as the liaison for the offshore back-end development team. Created User Stories and directed the back-end team on what areas to focus on and expected payloads, database table structure, and more.
-      Currently working on React Native version of the app, on a separate codebase. Backend is written in .NET Core, but is maintained by the offshore team.`,
-      tools: ['react', 'typescript', 'aws', 'nodejs', 'git'],
+      content: `Leading the Development team on a cross-geographic project that involves .NET Core, React, React Native, Redux, Azure SQL, Azure Data Factory, and Azure Functions. I help with all asking of Product Development and consult with the client on a regular basis. This project and client use the SAFe methodology.`,
+      tools: ['react', 'typescript', 'nodejs', 'git', 'dotnetcore'],
     },
     {
       header: 'Intrepid Project 4',
