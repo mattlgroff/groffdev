@@ -13,7 +13,7 @@ interface Experience {
 export class ExperiencesPageComponent {
   public experiences: Experience[] = [
     {
-      header: 'Startup - Software Engineering Associate',
+      header: 'Startup - Software Engineer',
       date: 'December 2019 - Present Day!',
       content:
        'Software Engineering Associate at a Startup.',
