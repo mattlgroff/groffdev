@@ -13,8 +13,14 @@ interface Experience {
 export class ExperiencesPageComponent {
   public experiences: Experience[] = [
     {
+      header: 'Startup - Software Engineering Associate',
+      date: 'December 2019 - Present Day!',
+      content:
+       'Software Engineering Associate at a Startup.',
+    },
+    {
       header: 'Accenture Digital Products - Web Developer',
-      date: 'June 2018 - Present Day!',
+      date: 'June 2018 - December 2019!',
       content:
         'Accenture hired me on as a Web Developer. I work on tons of different projects and work with great people at the Houston Innovation Hub.',
     },
