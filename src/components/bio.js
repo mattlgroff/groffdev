@@ -27,8 +27,8 @@ const Bio = () => {
   `)
 
   // Set these values by editing "siteMetadata" in gatsby-config.js
-  const author = data.site.siteMetadata?.author
-  const social = data.site.siteMetadata?.social
+  const author = data.site.siteMetadata?.author;
+  const job = data.site.siteMetadata?.job;
 
   return (
     <div className="bio">
@@ -36,19 +36,19 @@ const Bio = () => {
         className="bio-avatar"
         layout="fixed"
         formats={["auto", "webp", "avif"]}
-        src="../images/profile-pic.png"
+        src="../images/profile-pic.jpg"
         width={50}
         height={50}
         quality={95}
-        alt="Profile picture"
+        alt="Profile picture of Matt Groff"
       />
-      {author?.name && (
+      {author?.name && job?.company && job?.title && job?.company_url && (
         <p>
           Written by <strong>{author.name}</strong> {author?.summary || null}
           {` `}
-          <a href={`https://twitter.com/${social?.twitter || ``}`}>
-            You should follow them on Twitter
-          </a>
+          <span>
+            {job.title} @ <a href={job.company_url}>{job.company}</a>
+          </span>
         </p>
       )}
     </div>
