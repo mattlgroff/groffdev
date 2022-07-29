@@ -108,3 +108,5 @@ To test that deployment works, run the same `hello` query against the GraphQL se
 Congrats, if everything worked you have a GraphQL server running on Bun in the cloud!
 
 You can find the source code for my example GraphQL Server w/ Bun on GitHub [here](https://github.com/mattlgroff/bun-graphql)
+
+EDIT: Since posting this, I've gone in and added a GraphQL Playground to the base endpoint `/` and moved around the code to match other pre-made Bun projects. So you example code above won't match what's in my repository.
