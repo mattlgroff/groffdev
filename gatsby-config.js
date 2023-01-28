@@ -5,10 +5,15 @@ module.exports = {
       name: `Matt Groff`,
       summary: `who lives and works remotely in Orlando, FL building apps and solutions for someone else.`,
     },
+    job: {
+      company: `Umbrage`,
+      company_url: `https://umbrage.com`,
+      title: `Director of Engineering`,
+    },
     description: `A blog documenting the work I do and fun things I learn`,
     siteUrl: `https://groff.dev`,
     social: {
-      twitter: `NotMattGroff`,
+      linkedin: `https://www.linkedin.com/in/mattgroff/`,
     },
   },
   plugins: [

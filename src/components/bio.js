@@ -18,8 +18,10 @@ const Bio = () => {
             name
             summary
           }
-          social {
-            twitter
+          job {
+            company
+            company_url
+            title
           }
         }
       }
