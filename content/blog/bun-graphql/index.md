@@ -1,6 +1,6 @@
 ---
 title: How To Make A GraphQL Server With Bun
-date: "2022-07-29T22:12:03.284Z"
+date: "2023-01-28T10:45:00.284Z"
 description: "How To Make A GraphQL Server With Bun"
 ---
 
@@ -43,29 +43,39 @@ import { Hono } from 'hono';
 import { graphqlServer } from '@honojs/graphql-server';
 import { buildSchema } from 'graphql/utilities/buildASTSchema.js';
 
+// Initialize Hono
 export const app = new Hono();
 
+// Builds schema from a string
 const schema = buildSchema(`
   type Query {
     hello: String
   }
 `);
 
-const rootValue = {
-  hello: () => 'Hello Hono!',
-};
+// Resolvers
+const rootResolver = (ctx) => {
+  return {
+    hello: () => 'Hello Hono!',
+  }
+}
 
-
+// Hono.js GraphQL Server
 app.use(
   '/graphql',
   graphqlServer({
     schema,
-    rootValue,
+    rootResolver,
   })
 );
 
+// Set the default port to 3000, or use the PORT environment variable
+const port = process.env.PORT || 3000;
+
+console.log(`Hono 🥟 GraphQL Server Listening on port ${port}`);
+
 export default {
-  port: process.env.PORT || 3000,
+  port,
   fetch: app.fetch,
 };
 ```
@@ -82,24 +92,26 @@ You won't see any logs in the console, but you should see a GraphQL server runni
 
 * Let's deploy this app using a Dockerfile. I followed a guide from [Northflank](https://northflank.com/guides/deploying-a-bun-app-on-northflank) for creating a Dockerfile to run a Bun application. Create a new file called `Dockerfile` and add the following code:
 ```
-FROM jarredsumner/bun:edge
+FROM jarredsumner/bun:0.5.1
 WORKDIR /app
 COPY package.json package.json
 COPY bun.lockb bun.lockb
 RUN bun install
-COPY . .
+COPY index.js index.js
 EXPOSE 3000
 ENTRYPOINT ["bun", "index.js"]
 ```
 
-You can test the file locally if you have Docker installed by running the following command:
+You can test the Dockerfile locally if you have Docker installed by running the following command:
 ```bash
-docker build .
+docker build -t bun-graphql .
+
+docker run bun-graphql
 ```
 
 * Commit and push up the code to a new repository. I suggest adding `node_modules/` to the `.gitignore` file.
 
-* Me personally, I deployed using [Render](https://render.com/), but there are tons of options to deploy an application in a Docker Container.
+* I deployed using [Render](https://render.com/), but there are tons of options to deploy an application in a Docker Container.
 
 I selected "New +" and then selected "Web Service". Once I connected my repository to the service, it detected my Dockerfile and was building and deploying in minutes.
 
@@ -107,6 +119,4 @@ To test that deployment works, run the same `hello` query against the GraphQL se
 
 Congrats, if everything worked you have a GraphQL server running on Bun in the cloud!
 
-You can find the source code for my example GraphQL Server w/ Bun on GitHub [here](https://github.com/mattlgroff/bun-graphql)
-
-EDIT: Since posting this, I've gone in and added a GraphQL Playground to the base endpoint `/` and moved around the code to match other pre-made Bun projects. So you example code above won't match what's in my repository.
+You can find the source code for my example GraphQL Server w/ Bun on GitHub [here](https://github.com/mattlgroff/bun-graphql). There code is going to look a bit different than the example here in this blog because I added GraphQL Playground and I'm reading my schema from a `graphql.schema` file.
