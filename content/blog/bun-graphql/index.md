@@ -20,7 +20,7 @@ Now to get started:
 
 * Install Bun: 
 ```bash
-curl https://bun.sh/install | bash
+curl -fsSL https://bun.sh/install | bash
 ```
 
 * Create a new project. I personally did `npm init` to create a `package.json` file.
@@ -90,7 +90,7 @@ bun index.js
 ```
 You won't see any logs in the console, but you should see a GraphQL server running if you query the endpoint. `http://localhost:3000/graphql`
 
-* Let's deploy this app using a Dockerfile. I followed a guide from [Northflank](https://northflank.com/guides/deploying-a-bun-app-on-northflank) for creating a Dockerfile to run a Bun application. Create a new file called `Dockerfile` and add the following code:
+* Let's deploy this app using a Dockerfile. Create a new file called `Dockerfile` and add the following code:
 ```
 FROM jarredsumner/bun:0.5.1
 WORKDIR /app
@@ -106,7 +106,7 @@ You can test the Dockerfile locally if you have Docker installed by running the 
 ```bash
 docker build -t bun-graphql .
 
-docker run bun-graphql
+docker run -p 3000:3000 bun-graphql
 ```
 
 * Commit and push up the code to a new repository. I suggest adding `node_modules/` to the `.gitignore` file.
@@ -119,4 +119,4 @@ To test that deployment works, run the same `hello` query against the GraphQL se
 
 Congrats, if everything worked you have a GraphQL server running on Bun in the cloud!
 
-You can find the source code for my example GraphQL Server w/ Bun on GitHub [here](https://github.com/mattlgroff/bun-graphql). There code is going to look a bit different than the example here in this blog because I added GraphQL Playground and I'm reading my schema from a `graphql.schema` file.
+You can find the source code for my example GraphQL Server w/ Bun on GitHub [here](https://github.com/mattlgroff/bun-graphql). The code is going to look a bit different than the example here in this blog because I added GraphQL Playground and I'm reading my schema from a `graphql.schema` file.
