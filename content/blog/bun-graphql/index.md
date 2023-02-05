@@ -4,6 +4,8 @@ date: "2023-01-28T10:45:00.284Z"
 description: "How To Make A GraphQL Server With Bun"
 ---
 
+UPDATE 2/4/2023 - I have a new blogpost for a much better method of running a GraphQL server with Bun [here with Apollo Server](https://groff.dev/bun-apollo-server/)
+
 This is my first post on my new blog, how exciting!
 
 Today, I was trying to find an example of how to make a GraphQL server with Bun, but I couldn't find one. I decided to create one instead.
