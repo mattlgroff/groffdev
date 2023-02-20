@@ -52,7 +52,6 @@ const Bio = () => {
             {job.title} @ <a href={job.company_url}>{job.company}</a>
           </span>
         </p>
-        <p>The views expressed on this account are solely my own and do not necessarily reflect the views or opinions of Bain & Company. My posts and opinions are my personal views and not those of my employer. Bain & Company does not endorse any content or opinions shared on this account.</p>
       )}
     </div>
   )
