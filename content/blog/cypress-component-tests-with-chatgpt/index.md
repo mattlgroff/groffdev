@@ -6,7 +6,7 @@ description: "Save Time Writing Unit Tests with Chat GPT and Cypress"
 
 Writing unit tests for React components can be time-consuming, especially if you have a large codebase with many components to test. Fortunately, with the help of Chat GPT and Cypress, you can save time by automating the process of writing unit tests.
 
-# Generating Tests with Chat GPT
+## Generating Tests with Chat GPT
 Let's say you have a React component called MyComponent that you want to test. Start by creating an empty file called my-component.spec.js in the cypress/integration directory.
 
 Next, go to chat.openai.com and start a new chat with the Chat GPT app. In the chat, copy and paste your MyComponent code and ask Chat GPT to "write me a cypress component spec test for the following React component."
@@ -44,7 +44,7 @@ describe('MyComponent', () => {
 });
 ```
 
-# Running Your Tests
+## Running Your Tests
 To run your tests, open the Cypress test runner by running the following command:
 
 ```bash
@@ -55,10 +55,10 @@ This will open the Cypress test runner, where you can select the my-component.sp
 
 If all goes well, you should see the tests pass and be confident that your component is working as expected.
 
-# Conclusion
+## Conclusion
 With the help of Chat GPT and Cypress, you can save time by automating the process of writing Cypress component tests for your React components. Simply copy and paste your component code, let Chat GPT do the rest, and run the tests. With this approach, you can ensure that your components are reliable and working as expected, while saving time and effort in the testing process.
 
-# Disclaimer
+## Disclaimer
 I prompted ChatGPT to write this article for me. It needed a lot of guidance.
 
 For example:
