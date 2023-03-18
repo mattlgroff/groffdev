@@ -29,8 +29,8 @@ const Bio = () => {
   `)
 
   // Set these values by editing "siteMetadata" in gatsby-config.js
-  const author = data.site.siteMetadata?.author;
-  const job = data.site.siteMetadata?.job;
+  const author = data.site.siteMetadata?.author
+  const job = data.site.siteMetadata?.job
 
   return (
     <div className="bio">
@@ -45,13 +45,22 @@ const Bio = () => {
         alt="Profile picture of Matt Groff"
       />
       {author?.name && job?.company && job?.title && job?.company_url && (
-        <p>
-          Written by <strong>{author.name}</strong> {author?.summary || null}
-          {` `}
-          <span>
-            {job.title} @ <a href={job.company_url}>{job.company}</a>
-          </span>
-        </p>
+        <div>
+          <p>
+            Written by <strong>{author.name}</strong> {author?.summary || null}
+          </p>
+          <br />
+          <br />
+
+          <StaticImage
+            className="header-image"
+            layout="fixed"
+            formats={["auto", "webp", "avif"]}
+            src="../images/chat-gpt.png"
+            quality={95}
+            alt="Chat-GPT response about me."
+          />
+        </div>
       )}
     </div>
   )
