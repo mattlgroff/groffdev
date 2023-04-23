@@ -6,7 +6,7 @@
   "author": "Matthew Groff <mattlgroff@gmail.com>",
   "dependencies": {
     "dotenv": "^16.0.3",
-    "gatsby": "^5.7.0",
+    "gatsby": "^5.9.0",
     "gatsby-plugin-feed": "^5.7.0",
     "gatsby-plugin-gatsby-cloud": "^5.7.0",
     "gatsby-plugin-google-analytics": "^5.7.0",
@@ -24,8 +24,8 @@
     "gatsby-transformer-remark": "^6.7.0",
     "gatsby-transformer-sharp": "^5.7.0",
     "prismjs": "^1.28.0",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
     "typeface-merriweather": "0.0.72",
     "typeface-montserrat": "0.0.75"
