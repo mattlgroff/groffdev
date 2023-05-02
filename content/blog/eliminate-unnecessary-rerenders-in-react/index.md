@@ -1,0 +1,253 @@
+---
+title: Eliminating Unnecessary Rerenders in React
+date: "2023-05-02T09:55:00.000Z"
+description: "useMemo, useState,  useEffect, and useReducer are all you need to eliminate all unnecessary rerenders in React."
+---
+
+Inspired by [How I eliminate ALL unnecessary Rerenders in React by Vitaliysteffensen](https://medium.com/@vitaliysteffensen/79505deeedea#e86b)
+
+## One Infinite Loop, Cupertino, CA 95014
+The [useEffect](https://react.dev/reference/react/useEffect) hook is one of the most powerful hooks in React. It allows you to perform side effects in your components. It's also one of the most misused hooks in React. If you're ever using `useEffect` to update state, you may have gotten yourself into an infinite loop. If any of the values in the dependency array have changed since the last render, the callback function will be called again. Setting the state in the callback function will cause a rerender, which will cause the callback function to be called again, and so on.
+
+Don't do this.
+```javascript
+useEffect({
+  setSomeState()
+}, [someState])
+```
+
+The above code will cause an infinite loop.
+
+Another common cause for infinite loops in React is calling a function instead of referencing it.
+
+```jsx
+<button onClick={updateStateFunction()}>Click me</button>
+```
+
+The code above includes a function that is being called within the onClick attribute. When we attempt to render the page, this function is immediately executed, which can trigger another render. This cycle of triggering the function and causing a render can continue indefinitely until it ultimately causes a runtime error in React.
+
+Avoid this pattern and instead use one of the following:
+
+```jsx  
+<button onClick={updateStateFunction}>Click me</button>
+```
+
+```jsx
+<button onClick={() => updateStateFunction()}>Click me</button>
+```
+
+## The Memo of the Story
+The [useMemo](https://react.dev/reference/react/useMemo) hook is used to memoize a value. Instead of React rerendering your component every time any prop or state in its parent are changed, you can wrap your component with `useMemo` and React will only rerender your component when one of the items in your dependency array changes. This is useful when you have a component that is expensive to render, but you know that it will only need to be rerendered when a specific prop or state changes.
+
+```jsx
+const expensiveComponent = useMemo(() => <ExpensiveComponent someProp={someProp} />, [someProp])
+```
+
+Let's say this component is returned on the same page as a state that is constantly changing. If that state is irrelevant to our expensive component, we can wrap our expensive component in `useMemo` and React will only rerender it when `someProp` changes. It will not rerender when the state changes, if that state is not included in the dependency array.
+
+You can also use `useMemo` to memoize a function or variable. This is useful when you have a function that is expensive to run, but you know that it will only need to be run when a specific prop or state changes.
+
+I'll use my Mortgage Calculator React App as an example. There's so many variables that can be changed, but many of our values should only re-calculate based upon specific parts of the form. For example, the monthly payment should only be recalculated when the loan amount, interest rate, or loan term changes. We can use `useMemo` to memoize our monthly payment function and only recalculate it when one of those values changes.
+
+```javascript
+const MonthlyPayment = ({
+  housePrice,
+  percentDown,
+  propertyTaxPercentage,
+  homeownersInsuranceYearlyCost,
+  hoaCostMonthly,
+  yearsOfMortgage,
+  interestRate,
+  monthlyPaymentShouldBeAtOrBelow,
+  hasPmiUnder20Down,
+}) => {
+  const downPayment = useMemo(() => {
+    return Number(Number(housePrice) * (Number(percentDown) / 100)).toFixed();
+  }, [housePrice, percentDown]);
+
+  const loanAmount = useMemo(() => {
+    return Number(Number(housePrice) - Number(downPayment)).toFixed();
+  }, [housePrice, downPayment]);
+
+  const principalInterestPayment = useMemo(() => {
+    const monthlyInterestRate = Number(interestRate) / 100 / 12;
+    const numberOfPayments = Number(yearsOfMortgage) * 12;
+    const monthlyPayment =
+      Number(loanAmount) *
+      (monthlyInterestRate /
+        (1 - Math.pow(1 / (1 + monthlyInterestRate), numberOfPayments)));
+    return Number(monthlyPayment).toFixed();
+  }, [loanAmount, interestRate, yearsOfMortgage]);
+  // And so on...
+```
+
+You can find the rest of my component on (GitHub)[https://github.com/mattlgroff/mortgage-calc/blob/master/src/components/MonthlyPayment.jsx]
+
+When using the `useMemo` hook, it's important to consider the trade-off between memory and performance. As a general rule, you should only apply `useMemo` when:
+
+*It re-renders given the same props or state
+*It re-renders often
+
+However, if your component introduces side effects, it should not be pure or memoized. Some examples of side effects include:
+
+*Modifying any external variable or object property
+*Logging data to the console
+*Writing data to a file
+*Writing data to the network
+*Triggering any external process
+*Calling any other functions with side-effects
+*Making asynchronous data calls
+
+But what if your component deals with non-primitive data types?
+
+`useMemo` does not work with non-primitive types. The reason is that non-primitive types can't be directly compared by their value. An example of this would be:
+
+```javascript
+  a = {key: 10};
+  b = {key: 10};
+  c = a;
+  a === b          //returns false
+  a === c          //returns true
+```
+
+How do we prevent rerendering, when using non-primitive data types?
+
+In a memoized component we do have the option to control the logic of the memo, by using a custom `areEqual` function.
+
+```javascript
+function areEqual(prevProps, nextProps) {
+/*
+return true if passing nextProps to render would return
+the same result as passing prevProps to render,
+otherwise return false
+*/
+}
+```
+
+You could grab `isEqual` from [lodash](https://www.npmjs.com/package/lodash) or write your own for your specific use case.
+
+```javascript
+function areEqual(prevProps, nextProps) {
+  return _.isEqual(prevProps, nextProps);
+}
+```
+
+Though it's better to just pass in primitive types to your memoized component or function (if possible). You can also pass a key to a primitive in the object instead.
+  
+```javascript 
+const obj = {key: 10};
+
+useMemo(() => {
+  // if obj.key changes, do something
+}, [obj.key])
+```
+
+
+## Unoptimized Conditional Rendering
+
+Don't do this:
+
+```jsx
+export default function App() {
+  const [useRole, setUserRole] = useState("defaultUser");
+
+  if (userRole === "admin") {
+    return (
+      <div className="admin-page">
+        <AdminHeaderComponent />
+        <HeaderComponent />
+        <ContentComponent />
+      </div>
+    )
+  }
+
+  return (
+    <div className="user-page">
+      <HeaderComponent />
+      <ContentComponent />
+    </div>
+  )
+}
+```
+
+The above code demonstrates poor conditional rendering, as both the <HeaderComponent/> and <ContentComponent/> are remounted whenever the state changes, even though it's unnecessary.
+
+If you find that you're rendering the exact same component on both sides of a ternary operator, it's usually a sign of poor conditional rendering.
+
+A better solution would be to extract the <HeaderComponent/> and <ContentComponent/> from the conditional render, as demonstrated below.
+
+```jsx
+export default function App() {
+  const [useRole, setUserRole] = useState("defaultUser");
+
+  return (
+    <div className={userRole === "admin" ? "admin-page" : "user-page"}>
+      {userRole === "admin" && <AdminHeaderComponent />}
+      <HeaderComponent />
+      <ContentComponent />
+    </div>
+  )
+}
+```
+
+## Optimize useEffect dependencies
+
+One common issue with useEffect() is specifying the dependencies incorrectly. Since useEffect() often involves state manipulation, it can cause unnecessary re-rendering if not used properly. To avoid this, it's important to be specific with the dependencies you pass to useEffect().
+
+By being specific with the dependencies, you can ensure that the useEffect() hook only runs when it's necessary. This can help improve the performance of your application and prevent unnecessary re-rendering.
+
+In addition to being specific, you can also use memoization to prevent running the useEffect() hook when it's not necessary.
+
+```jsx
+useEffect(() => {
+  // do something
+}, [someState])
+```
+
+Remember, non-primitives can't be directly compared by their value. So if you're using a non-primitive type as a dependency, you'll need to use a custom `areEqual` function or better yet pass in a primitive type or key to the object.
+
+```jsx
+useEffect(() => {
+  // do something
+}, [someState.key])
+```
+
+Another technique to prevent unnecessary re-renders is to use memoization with the useMemo() hook. By using useMemo(), you can create a memoized value that only updates when its dependencies change, reducing the number of updates to that value. Here's an example:
+
+```jsx
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+
+useEffect(() => {
+  // do something with memoizedValue
+}, [memoizedValue])
+```
+
+Our `useEffect` will trigger only if the `memoizedValue` changes. This is a great way to prevent unnecessary re-renders.
+
+## useReducer, Reuse, Recycle
+
+[useReducer](https://react.dev/reference/react/useReducer) is a hook that lets you add a [reducer](https://react.dev/learn/extracting-state-logic-into-a-reducer) to your component. If you're familiar with [Redux](https://redux.js.org/), you'll find that `useReducer` is very similar to Redux's `useReducer` hook.
+
+Read more about refactoring `useState` to `useReducer` [here](https://react.dev/learn/extracting-state-logic-into-a-reducer).
+
+It won't fix re-renders on it's own, but it will make your code more readable and easier to maintain which might help you find the source of your re-renders.
+
+## Conclusion 
+
+Always remember to consider the trade-off between memory and performance when using useMemo. Memoizing values that are not expensive to calculate can actually hurt performance. Be sure to test and profile your application to ensure that it's running as efficiently as possible. 
+
+Honorable mention but not something I've worked with a ton yet is the [useCallback](https://react.dev/reference/react/useCallback) hook which is specifically designed to memoize functions. It can be used for:
+* Skipping re-rendering of components
+* Updating state from a memoized callback
+* Preventing an Effect from firing too often
+* Optimizing a custom Hook
+
+It wasn't covered in today's article but maybe I'll focus on it in the future. I've yet to use it in a project but it seems like a great tool to have in your toolbelt.
+
+The [React Developer Tools extension](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en-US) can help track down the source of re-renders.
+
+In conclusion, there are several techniques you can use to eliminate unnecessary rerenders in your React application. You can use useMemo to memoize expensive calculations and prevent unnecessary renders of components. It's also important to optimize the dependencies in useEffect to ensure that the hook only runs when necessary. You can use the useReducer hook to add a reducer to your component, which can make your code more readable and easier to maintain.
+
+Remember, every time your component rerenders, it can negatively impact the performance of your application. By using these techniques, you can prevent unnecessary rerenders and make your application faster and more efficient.
+
+
