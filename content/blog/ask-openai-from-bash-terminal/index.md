@@ -1,0 +1,49 @@
+---
+title: "Ask Anything from your Bash Terminal with OpenAI"
+date: "2023-05-12T12:00:00.000Z"
+description: "Interact with OpenAI's GPT-4 model directly from your bash terminal for quick answers to your questions."
+---
+
+Inspired by [this article by Norah Sakal](https://norahsakal.com/blog/ask-gpt3-programming-questions-in-terminal) on asking OpenAI questions from the terminal using python.
+
+I often find myself searching for the correct syntax for a command line tool or trying to remember the name of a specific flag. Instead of going to ChatGPT or asking GitHub Copilot, I wanted to see if I could get a quick answer from OpenAI directly in my terminal.
+
+Meet `ask`, a bash command line program that uses OpenAI's GPT-3.5 Turbo model to answer your questions right in the terminal. This small program not only sends your question to OpenAI, but also the output of `pwd` and `ls -al` to provide additional context for your question.
+
+## Instructions
+You can setup `ask` by adding the following lines in your `~/.bashrc`:
+
+```bash
+export OPEN_AI_API_KEY="myopenaiapikey"
+alias ask='ruby ~/ask/ask.rb'
+```
+
+After that, run source ~/.bashrc to reload your shell. Remember to replace "myopenaiapikey" with your actual OpenAI API key. The ask.rb script should be located in the ask folder in your home directory.
+
+## Usage
+To use ask, simply type ask followed by your question in quotes:
+
+```bash
+ask "How do I extract my discord file?"
+```
+
+Let's say you have a discord.tar.gz file in your current directory and you don't know how to extract it. Here's how ask can help:
+
+```bash
+matt@ubuntu-desktop:~$ ls
+ask  Desktop  discord.tar.gz  Documents  Downloads  Music  Pictures  Public  snap  Templates  Videos  working
+matt@ubuntu-desktop:~$ ask "How do I extract my discord file?"
+You can extract your discord file using the following command:
+
+tar -xvf discord.tar.gz
+
+This will extract the contents of the `discord.tar.gz` file in the current directory.
+```
+
+As you can see, ask not only gave the correct command to extract a tar.gz file, but it also used the correct filename from the context provided.
+
+Currently, `ask` is configured to use the gpt-3.5-turbo model, but you can change it to gpt-4 in the ask.rb script if you prefer. The gpt-3.5-turbo model is generally sufficient for command line questions and provides cost savings.
+
+You can find my GitHub Repo with `ask` [here](https://github.com/mattlgroff/ask-cli).
+
+I'd love to hear your thoughts on [LinkedIn](https://www.linkedin.com/in/mattgroff/).
