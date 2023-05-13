@@ -4,10 +4,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 
 import { Container } from '@/components/Container'
-import {
-  GitHubIcon,
-  LinkedInIcon,
-} from '@/components/SocialIcons'
+import { GitHubIcon, LinkedInIcon } from '@/components/SocialIcons'
 import portraitImage from '@/images/portrait.jpg'
 
 function SocialLink({ className, href, children, icon: Icon }) {
@@ -64,11 +61,11 @@ export default function About() {
             </h1>
             <div className="mt-6 space-y-7 text-base text-zinc-600 dark:text-zinc-400">
               <p>
-                I've had a passion for creating things from a young age. Growing
-                up in San Diego, CA, I started tinkering with web technology
-                when I was just 10 years old. I remember spending hours writing
-                HTML and CSS for Neopets and Myspace on our family PC,
-                connecting to the internet through good old dial-up.
+                I&apos;ve had a passion for creating things from a young age.
+                Growing up in San Diego, CA, I started tinkering with web
+                technology when I was just 10 years old. I remember spending
+                hours writing HTML and CSS for Neopets and Myspace on our family
+                PC, connecting to the internet through good old dial-up.
               </p>
 
               <p>
@@ -109,15 +106,15 @@ export default function About() {
               <p>
                 In December 2019, seeking new challenges, I made a leap of faith
                 and joined Umbrage, a budding startup at the time. As a Director
-                of Engineering, I've been able to contribute to its growth and
-                success. I'm proud to say that Umbrage was recently acquired,
-                and being part of a successful startup acquisition has been an
-                incredible experience.
+                of Engineering, I&apos;ve been able to contribute to its growth
+                and success. I&apos;m proud to say that Umbrage was recently
+                acquired, and being part of a successful startup acquisition has
+                been an incredible experience.
               </p>
 
               <p>
                 In the present day, I reside in Orlando, Florida, working
-                remotely for Umbrage. When I'm not immersed in software
+                remotely for Umbrage. When I&apos;m not immersed in software
                 engineering, you can find me enjoying quality time with my wife
                 and our dog. I also write about software engineering and make
                 sure to explore the local theme parks, making the most of my
@@ -127,10 +124,18 @@ export default function About() {
           </div>
           <div className="lg:pl-20">
             <ul role="list">
-              <SocialLink href="https://github.com/mattlgroff" icon={GitHubIcon} className="mt-4">
+              <SocialLink
+                href="https://github.com/mattlgroff"
+                icon={GitHubIcon}
+                className="mt-4"
+              >
                 Follow on GitHub
               </SocialLink>
-              <SocialLink href="https://www.linkedin.com/in/mattgroff/" icon={LinkedInIcon} className="mt-4">
+              <SocialLink
+                href="https://www.linkedin.com/in/mattgroff/"
+                icon={LinkedInIcon}
+                className="mt-4"
+              >
                 Follow on LinkedIn
               </SocialLink>
               <SocialLink
