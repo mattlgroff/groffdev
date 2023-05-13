@@ -19,6 +19,10 @@ function usePrevious(value) {
 export default function App({ Component, pageProps, router }) {
   let previousPathname = usePrevious(router.pathname)
 
+  useEffect(() => {
+    window.localStorage.isDarkMode = true;
+  }, []);
+
   return (
     <>
       <div className="fixed inset-0 flex justify-center sm:px-8">
