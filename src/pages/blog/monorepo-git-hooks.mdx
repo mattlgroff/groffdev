@@ -1,0 +1,52 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-05-11',
+  title: 'Leveraging Git Hooks in Monorepos with Mookme.',
+  description: "An advanced Git hook solution for monorepos, similar to Husky.",
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+Despite its amusing name, [Mookme](https://mookme.org/) is a "simple, easy-to-use, yet powerful, and language-agnostic git hook designed specifically for monorepos." The brains behind Mookme, [escape.tech](https://escape.tech/company/), are also responsible for the GraphQL and REST API Security Tools. Their innovative contributions are worth a follow, so consider checking them out on [LinkedIn](https://www.linkedin.com/company/escapetech/).
+
+[Husky](https://typicode.github.io/husky/#/) has been a valuable tool in preventing wasted time through its pre-commit hooks on various Umbrage projects. The last thing anyone wants is to commit something that fails to pass eslint or hasn't been formatted with prettier. Mookme offers similar functionality but excels in managing pre-commit hooks in monorepos without needing alignment to a package.json.
+
+Simply drop a `.hooks` folder into any subdirectory, and the hooks will only execute if there are commits making changes within those subdirectories. If there's a need for a hook to run across the entire repo, a global `.hooks` can be set at the root.
+
+In an ongoing internal project, we have a Rails API in `/backend` and a Next.js app in `/frontend`. I've added `eslint` and `prettier` with [lint-staged](https://github.com/okonet/lint-staged#readme) exclusively to the Next.js app by positioning the hook here:
+`/frontend/.hooks/pre-commit.json`
+
+The json syntax is straightforward:
+
+```json
+{
+  "steps": [
+    {
+      "name": "Lint",
+      "command": "npx lint-staged"
+    }
+  ]
+}
+```
+
+Our `/frontend/package.json` houses our `lint-staged` configuration:
+
+```json
+{
+    "lint-staged": {
+        "src/**/*.(ts|tsx|js|jsx)": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "src/**/*.(css|scss)": [
+            "prettier --write"
+        ]
+    },
+}
+```
+
+For the future, I plan to explore integrating a hook into `/backend/.hooks/` to run a Ruby gem that would generate new TypeScript interfaces for use in the `/frontend` Next.js app, ensuring we always have the latest types if the Rails API schema changes.
+
+What are some of your favorite uses for git hooks? I'd love to hear your thoughts on [LinkedIn](https://www.linkedin.com/in/mattgroff/).
