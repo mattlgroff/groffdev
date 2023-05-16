@@ -176,7 +176,6 @@ export default function Home({ articles }) {
           <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
           I&apos;m Matthew Groff, a software engineer based in Orlando, FL. 
           I work remotely, focusing on developing applications and crafting solutions for different industries. 
-          The views expressed on this account are solely my own and do not necessarily reflect the views or opinions of Bain & Company. 
           When I&apos;m not working I enjoy spending time with my wife and dog, playing video games, and visiting the local Orlando attractions.
           My posts and opinions are my personal views and not those of my employer. 
           Bain & Company does not endorse any content or opinions shared on this account.
