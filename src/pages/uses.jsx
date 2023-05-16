@@ -37,6 +37,10 @@ export default function Uses() {
       description:
         "A faster alternative to Node.js that's built upon JavaScriptCore 'the performance-minded JS engine built for Safari.'",
     },
+    { 
+      title: 'JavaScript',
+      description: "Love it or hate it we use JS everyday."
+    },
     {
       title: 'GraphQL',
       href: 'https://graphql.org/',
