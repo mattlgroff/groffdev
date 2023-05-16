@@ -28,10 +28,20 @@ function Tool({ title, href, children }) {
 export default function Uses() {
   const technologies = [
     {
+      title: 'Apollo Server',
+      href: 'https://www.apollographql.com/',
+      description: "Apollo is a well documented GraphQL Server with a great community. They offer free certifications and training. I earned the Graph Developer Professional certification in January 2023 and the Graph Developer Associate certificate in May 2022.",
+    },
+    {
       title: 'Bun',
       href: 'https://bun.sh/',
       description:
         "A faster alternative to Node.js that's built upon JavaScriptCore 'the performance-minded JS engine built for Safari.'",
+    },
+    {
+      title: 'GraphQL',
+      href: 'https://graphql.org/',
+      description: "Describe your data. Ask for what you want. Get predictable results."
     },
     {
       title: 'Next.js',
