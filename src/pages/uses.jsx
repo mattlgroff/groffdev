@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import Link from 'next/link'
 import { Card } from '@/components/Card'
 import { Section } from '@/components/Section'
 import { SimpleLayout } from '@/components/SimpleLayout'
