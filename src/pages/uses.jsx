@@ -1,5 +1,5 @@
 import Head from 'next/head'
-
+import Link from 'next/link'
 import { Card } from '@/components/Card'
 import { Section } from '@/components/Section'
 import { SimpleLayout } from '@/components/SimpleLayout'
@@ -26,90 +26,257 @@ function Tool({ title, href, children }) {
 }
 
 export default function Uses() {
+  const technologies = [
+    {
+      title: 'Bun',
+      href: 'https://bun.sh/',
+      description:
+        "A faster alternative to Node.js that's built upon JavaScriptCore 'the performance-minded JS engine built for Safari.'",
+    },
+    {
+      title: 'Next.js',
+      href: 'https://nextjs.org/',
+      description:
+        'A React framework that includes server-side rendering, static page generating, and so much more.',
+    },
+    {
+      title: 'Node.js',
+      href: 'https://nodejs.org/',
+      description:
+        "I've been working with Node.js since 2017 and I use it every single day in some capacity.",
+    },
+    {
+      title: 'PostgreSQL',
+      href: 'https://www.postgresql.org/',
+      description:
+        "For relational databases, I prefer Postgres. It's fast, reliable, and has a great community.",
+    },
+    {
+      title: 'React',
+      href: 'https://react.dev/',
+      description:
+        "I've been working with React since 2017 and it's my go-to for a library single page application.",
+    },
+    {
+      title: 'Redis',
+      href: 'https://redis.io/',
+      description:
+        "For caching, I prefer Redis. It's fast, reliable, and has a great community.",
+    },
+    {
+      title: 'Ruby on Rails',
+      href: 'https://rubyonrails.org/',
+      description:
+        "I've been working with Rails since 2023 and primarily use it for rapid API development.",
+    },
+    {
+      title: 'Tailwind CSS',
+      href: 'https://tailwindui.com/',
+      description:
+        "I'm been working with Tailwind since 2023 and it's really grown on me once I got over the verbosity.",
+    },
+    {
+      title: 'TypeScript',
+      href: 'https://www.typescriptlang.org/',
+      description:
+        "It's a great way to catch bugs before they happen. Sometimes the type system can be a bit of a pain but it's worth it.",
+    },
+  ]
+
+  const developmentTools = [
+    {
+      title: 'ChatGPT',
+      href: 'https://chat.openai.com/',
+      description:
+        "I use ChatGPT as a Pair Programmer who can validate ideas, offer suggestions, and help me write the code I don't want to write.",
+    },
+    {
+      title: 'Docker',
+      href: 'https://www.docker.com/',
+      description:
+        "If it doesn't come with a Dockerfile then I will make one. I don't miss the world of 'it works on my machine' at all.",
+    },
+    {
+      title: 'GitHub',
+      href: 'https://github.com/',
+      description: 'I host all of my open source projects on GitHub.',
+    },
+    {
+      title: 'NVM (Node Version Manager)',
+      href: 'https://github.com/nvm-sh/nvm',
+      description: 'I use NVM to manage my Node.js versions.',
+    },
+    {
+      title: 'Postman',
+      href: 'https://www.postman.com/',
+      description:
+        "I don't feel too strongly about Postman but it gets the job done and I haven't found anything better. Open to recommendations.",
+    },
+    {
+      title: 'RVM (Ruby Version Manager)',
+      href: 'https://rvm.io/',
+      description: 'I use RVM to manage my Ruby versions.',
+    },
+  ]
+
+  const vscodeExtensions = [
+    {
+      name: 'Code Spell Checker',
+      href: 'https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker',
+      description:
+        'I use this to catch typos in my code, comments, and Markdown files.',
+    },
+    {
+      name: 'colorize',
+      href: 'https://marketplace.visualstudio.com/items?itemName=kamikillerto.vscode-colorize',
+      description:
+        'This extension colorizes CSS colors in my code with a [] beside them.',
+    },
+    {
+      name: 'ESLint',
+      href: 'https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint',
+      description: 'I use this to lint my JavaScript and TypeScript code.',
+    },
+    {
+      name: 'ERB Formatter',
+      href: 'https://marketplace.visualstudio.com/items?itemName=tomclose.format-erb',
+      description:
+        'This extension formats my ERB files for Ruby on Rails view development.',
+    },
+    {
+      name: 'GitHub Copilot',
+      href: 'https://marketplace.visualstudio.com/items?itemName=GitHub.copilot',
+      description: 'I use this to help me write code faster.',
+    },
+    {
+      name: 'GitLens -- Git supercharged',
+      href: 'https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens',
+      description: 'GitLens tells me who wrote each line of code and when.',
+    },
+    {
+      name: 'GraphQL: Syntax Highlighting',
+      href: 'https://marketplace.visualstudio.com/items?itemName=GraphQL.vscode-graphql-syntax',
+      description:
+        'This extension highlights GraphQL syntax in my .graphql files.',
+    },
+    {
+      name: 'Import Cost',
+      href: 'https://marketplace.visualstudio.com/items?itemName=wix.vscode-import-cost',
+      description:
+        'This extension shows me the size of each import in my code.',
+    },
+    {
+      name: 'MDX',
+      href: 'https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx',
+      description: 'This extension provides syntax highlighting for MDX files.',
+    },
+    {
+      name: 'MDX Preview',
+      href: 'https://marketplace.visualstudio.com/items?itemName=xyc.vscode-mdx-preview',
+      description: 'This extension provides a preview of my MDX files.',
+    },
+    {
+      name: 'Prettier - Code formatter',
+      href: 'https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode',
+      description:
+        'I use this to format my code. It is extremely useful when a team is working on a project and the formatting is enforced.',
+    },
+    {
+      name: 'Pretty TypeScript Errors',
+      href: 'https://marketplace.visualstudio.com/items?itemName=yoavbls.pretty-ts-errors',
+      description: 'This extension makes TypeScript errors easier to read.',
+    },
+    {
+      name: 'Ruby',
+      href: 'https://marketplace.visualstudio.com/items?itemName=rebornix.ruby',
+      description:
+        'This extension provides syntax highlighting for Ruby files.',
+    },
+    {
+      name: 'Rufo - Ruby formatter',
+      href: 'https://marketplace.visualstudio.com/items?itemName=jnbt.vscode-rufo',
+      description: 'This extension formats my Ruby code.',
+    },
+    {
+      name: 'Sort lines',
+      href: 'https://marketplace.visualstudio.com/items?itemName=Tyriar.sort-lines',
+      description:
+        'This extension sorts lines of code. I like to keep json and imports alphabetized and this helps.',
+    },
+    {
+      name: 'Svg Preview',
+      href: 'https://marketplace.visualstudio.com/items?itemName=SimonSiefke.svg-preview',
+      description: 'This extension provides a preview of my SVG files.',
+    },
+    {
+      name: 'Tailwind CSS IntelliSense',
+      href: 'https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss',
+      description:
+        'This extension provides Tailwind CSS class name completion and hovering shows the equivalent CSS style.',
+    },
+    {
+      name: 'Template String Converter',
+      href: 'https://marketplace.visualstudio.com/items?itemName=meganrogge.template-string-converter',
+      description:
+        'If you type ${} in quotes, this extension will convert it to a template string.',
+    },
+    {
+      name: 'VSCode Ruby',
+      href: 'https://marketplace.visualstudio.com/items?itemName=wingrunr21.vscode-ruby',
+      description:
+        'This extension also helps provides syntax highlighting for Ruby files.',
+    },
+  ]
+
   return (
     <>
       <Head>
         <title>Uses - Matthew Groff</title>
         <meta
           name="description"
-          content="Software I use, gadgets I love, and other things I recommend."
+          content="Technologies, tools, and other things I use to build software and stay productive."
         />
       </Head>
       <SimpleLayout
-        title="Software I use, gadgets I love, and other things I recommend."
-        intro="I get asked a lot about the things I use to build software, stay productive, or buy to fool myself into thinking I’m being productive when I’m really just procrastinating. Here’s a big list of all of my favorite stuff."
+        title="Technologies, tools, and other things I use to build software and stay productive."
+        intro="I'm always looking for ways to improve my workflow and productivity."
       >
         <div className="space-y-20">
-          <ToolsSection title="Workstation">
-            <Tool title="16” MacBook Pro, M1 Max, 64GB RAM (2021)">
-              I was using an Intel-based 16” MacBook Pro prior to this and the
-              difference is night and day. I’ve never heard the fans turn on a
-              single time, even under the incredibly heavy loads I put it
-              through with our various launch simulations.
-            </Tool>
-            <Tool title="Apple Pro Display XDR (Standard Glass)">
-              The only display on the market if you want something HiDPI and
-              bigger than 27”. When you’re working at planetary scale, every
-              pixel you can get counts.
-            </Tool>
-            <Tool title="IBM Model M SSK Industrial Keyboard">
-              They don’t make keyboards the way they used to. I buy these any
-              time I see them go up for sale and keep them in storage in case I
-              need parts or need to retire my main.
-            </Tool>
-            <Tool title="Apple Magic Trackpad">
-              Something about all the gestures makes me feel like a wizard with
-              special powers. I really like feeling like a wizard with special
-              powers.
-            </Tool>
-            <Tool title="Herman Miller Aeron Chair">
-              If I’m going to slouch in the worst ergonomic position imaginable
-              all day, I might as well do it in an expensive chair.
-            </Tool>
+          <ToolsSection title="Technologies">
+            {technologies.map((technology) => (
+              <Tool
+                key={technology.title}
+                title={technology.title}
+                href={technology.href}
+              >
+                {technology.description}
+              </Tool>
+            ))}
           </ToolsSection>
+
           <ToolsSection title="Development tools">
-            <Tool title="Sublime Text 4">
-              I don’t care if it’s missing all of the fancy IDE features
-              everyone else relies on, Sublime Text is still the best text
-              editor ever made.
-            </Tool>
-            <Tool title="iTerm2">
-              I’m honestly not even sure what features I get with this that
-              aren’t just part of the macOS Terminal but it’s what I use.
-            </Tool>
-            <Tool title="TablePlus">
-              Great software for working with databases. Has saved me from
-              building about a thousand admin interfaces for my various projects
-              over the years.
-            </Tool>
-          </ToolsSection>
-          <ToolsSection title="Design">
-            <Tool title="Figma">
-              We started using Figma as just a design tool but now it’s become
-              our virtual whiteboard for the entire company. Never would have
-              expected the collaboration features to be the real hook.
-            </Tool>
-          </ToolsSection>
-          <ToolsSection title="Productivity">
-            <Tool title="Alfred">
-              It’s not the newest kid on the block but it’s still the fastest.
-              The Sublime Text of the application launcher world.
-            </Tool>
-            <Tool title="Reflect">
-              Using a daily notes system instead of trying to keep things
-              organized by topics has been super powerful for me. And with
-              Reflect, it’s still easy for me to keep all of that stuff
-              discoverable by topic even though all of my writing happens in the
-              daily note.
-            </Tool>
-            <Tool title="SavvyCal">
-              Great tool for scheduling meetings while protecting my calendar
-              and making sure I still have lots of time for deep work during the
-              week.
-            </Tool>
-            <Tool title="Focus">
-              Simple tool for blocking distracting websites when I need to just
-              do the work and get some momentum going.
+            {developmentTools.map((tool) => (
+              <Tool key={tool.title} title={tool.title} href={tool.href}>
+                {tool.description}
+              </Tool>
+            ))}
+            <Tool title="VS Code">
+              Here's a list of my extensions:
+              <ul role="list" className="space-y-2">
+                {vscodeExtensions.map((extension) => (
+                  <li key={extension.name}>
+                    <a
+                      href={extension.href}
+                      className="text-blue-500 hover:text-blue-600"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {extension.name}
+                    </a>
+                    <p className="text-gray-500">{extension.description}</p>
+                  </li>
+                ))}
+              </ul>
             </Tool>
           </ToolsSection>
         </div>
