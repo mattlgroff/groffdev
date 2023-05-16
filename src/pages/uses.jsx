@@ -43,7 +43,7 @@ export default function Uses() {
       title: 'Node.js',
       href: 'https://nodejs.org/',
       description:
-        "I've been working with Node.js since 2017 and I use it every single day in some capacity.",
+        "I have been working with Node.js since 2017 and I use it every single day in some capacity.",
     },
     {
       title: 'PostgreSQL',
@@ -55,7 +55,7 @@ export default function Uses() {
       title: 'React',
       href: 'https://react.dev/',
       description:
-        "I've been working with React since 2017 and it's my go-to for a library single page application.",
+        "I have been working with React since 2017 and it's my go-to for a library single page application.",
     },
     {
       title: 'Redis',
@@ -67,19 +67,19 @@ export default function Uses() {
       title: 'Ruby on Rails',
       href: 'https://rubyonrails.org/',
       description:
-        "I've been working with Rails since 2023 and primarily use it for rapid API development.",
+        "I have be been working with Rails since 2023 and primarily use it for rapid API development.",
     },
     {
       title: 'Tailwind CSS',
       href: 'https://tailwindui.com/',
       description:
-        "I'm been working with Tailwind since 2023 and it's really grown on me once I got over the verbosity.",
+        "I have been working with Tailwind since 2023 and it's really grown on me once I got over the verbosity.",
     },
     {
       title: 'TypeScript',
       href: 'https://www.typescriptlang.org/',
       description:
-        "It's a great way to catch bugs before they happen. Sometimes the type system can be a bit of a pain but it's worth it.",
+        "It is a great way to catch bugs before they happen. Sometimes the type system can be a bit of a pain but it's worth it.",
     },
   ]
 
@@ -239,7 +239,7 @@ export default function Uses() {
       </Head>
       <SimpleLayout
         title="Technologies, tools, and other things I use to build software and stay productive."
-        intro="I'm always looking for ways to improve my workflow and productivity."
+        intro="Improving my workflow and productivity."
       >
         <div className="space-y-20">
           <ToolsSection title="Technologies">
@@ -261,7 +261,7 @@ export default function Uses() {
               </Tool>
             ))}
             <Tool title="VS Code">
-              Here's a list of my extensions:
+              Here is a list of my extensions:
               <ul role="list" className="space-y-2">
                 {vscodeExtensions.map((extension) => (
                   <li key={extension.name}>
