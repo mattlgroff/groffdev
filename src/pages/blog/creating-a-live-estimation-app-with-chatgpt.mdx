@@ -1,0 +1,969 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-05-20',
+  title: 'Creating a Live Estimation App with ChatGPT - Part 1',
+  description: "Prompting ChatGPT to help me create a Live Estimation App with Next.js and Supabase.",
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+## The Plan
+
+I'm going to work with ChatGPT 4 to help me build a live estimation app. I'll be using Next.js and Supabase. Below is my back and forth with ChatGPT. Labels are User (Me, Matt Groff) and System (ChatGPT).
+
+At work we have used some "free" live estimation systems in conjuction with Zoom or Google Meet, but they are not great. I want to build something that is easy to use and can be used for free. I also want to use this as a way to learn more about Next.js and Supabase.
+
+Some of my co-workers have expressed intrests in seeing my prompts and how I use ChatGPT, so the main reason I'm writing this is to share how I use ChatGPT. 
+
+## Prompts to build
+**User:**
+Let's make a Next.js full-stack application (using Tailwind CSS) that can be used for estimating user stories as a group.
+
+I want to be able to (without signup): 
+Create a new Estimation Party.
+
+Join an existing Estimation Party from a link or invite code (let's say 6 random letters/numbers all caps).
+
+Estimation Parties should have a lifespan of 24 hours. If they live longer than that the invite code is invalided and could be recycled.
+
+Whoever joins the room first gets Lead, who can Reveal Estimations and Estimate New Work Item (with a ticket name and optionally a URL to the ticket). 
+
+Anyone joining needs to put a name and the name must be unique to the room. (Matt, Matt G, etc).
+
+When it's time to a Estimate New Work Item, anyone is allowed to provide a Fibbonaci sequence estimation 0, 1, 2, 3, 5, 8, 13, 21, etc or they can choose ? which means they have a clarifying question.
+
+When the Lead selects Reveal Estimations, everyone can see the number (or ?) of the estimate and the person who made it.
+
+Can we accomplish this with just Next.js (deployed to Vercel) or do we need to host a websocket service separately?
+
+...
+
+**System:**
+This can be accomplished mostly with Next.js, but it will require a real-time data exchange mechanism like websockets, long polling, or server-sent events. While Next.js does not have built-in support for WebSockets, this doesn't necessarily mean you need to host a separate WebSocket service. Instead, you can use a real-time database or a service like Pusher, Socket.IO, or Firebase Realtime Database that handles the real-time data exchange for you.
+
+For simplicity, we will use Firebase Realtime Database in this case, which uses WebSockets behind the scenes and works well with Next.js applications. Firebase also provides data persistence, which is important for managing the Estimation Parties' lifespans.
+
+Here's an outline of how you might structure your application:
+
+Project setup: Setup your Next.js application with Tailwind CSS. This can be done easily using create-next-app with the Tailwind CSS starter template.
+
+Firebase integration: Setup Firebase in your project. You can start with Firebase Realtime Database for managing your data in real-time.
+
+Estimation Party creation: For creating a new estimation party, generate a unique 6 character code (can be alphanumeric and all caps). Use this as a key in your Firebase Realtime Database with its value being the details of the party (such as the timestamp of creation). The details should include the unique names of the people who have joined the party. The first one to join gets the "Lead" status.
+
+Joining an Estimation Party: When someone wants to join an existing estimation party, they enter the unique code. The application checks with Firebase if a party with that code exists and if it's not older than 24 hours. If yes, they're asked to enter a unique name and are added to the party.
+
+Estimation: When the Lead creates a new work item to estimate, they input the details and it's added to the Firebase database under that party's details. Everyone in the party can see this and can add their estimation in Fibonacci sequence or a "?" as a question. When everyone has estimated, the Lead can reveal the estimations.
+
+Revealing Estimations: When the Lead clicks to reveal the estimations, the details of each person's estimation is shown. This can be achieved by fetching the data from Firebase.
+
+Party Lifecycle: Firebase allows you to create Cloud Functions which are pieces of code that run in response to events in your Firebase app. You could create a cloud function that runs every hour, checks all the parties, and removes any that are more than 24 hours old, invalidating their code.
+
+This is just a rough outline and there are many details you'll need to work out based on your specific requirements. But this should give you a good idea of how to structure your application and how Firebase can help you manage real-time data in a Next.js application.
+
+...
+
+**User:**
+Can we use Supabase Realtime instead of Firebase?
+
+...
+
+**System:**
+Absolutely! Supabase's Realtime and database services can certainly be used as an alternative to Firebase. Supabase is an open-source Firebase alternative that provides key features such as a Postgres database, authentication and authorization, storage, and serverless functions.
+
+Here's how the steps would look like with Supabase:
+
+Project setup: Setup your Next.js application with Tailwind CSS using create-next-app.
+
+Supabase integration: Set up Supabase in your project. You'll use Supabase's Realtime and Postgres database service to manage real-time data.
+
+Estimation Party creation: For creating a new estimation party, generate a unique 6 character code (alphanumeric and all caps). This can be used as a unique key in your Supabase Database with its value being the details of the party (such as the timestamp of creation). The details should include the unique names of the people who have joined the party. The first one to join gets the "Lead" status.
+
+Joining an Estimation Party: When someone wants to join an existing estimation party, they enter the unique code. The application checks with Supabase if a party with that code exists and if it's not older than 24 hours. If yes, they're asked to enter a unique name and are added to the party.
+
+Estimation: When the Lead creates a new work item to estimate, they input the details and it's added to the Supabase database under that party's details. Everyone in the party can see this and can add their estimation in Fibonacci sequence or a "?" as a question. When everyone has estimated, the Lead can reveal the estimations.
+
+Revealing Estimations: When the Lead clicks to reveal the estimations, the details of each person's estimation are shown. This can be achieved by fetching the data from Supabase.
+
+Party Lifecycle: Supabase, at the time of my knowledge cutoff in September 2021, does not support serverless functions like Firebase Cloud Functions, so you'll need to handle the 24-hour lifespan of the estimation parties differently. You might consider using a CRON job running on a separate server or a service like EasyCron to regularly delete parties that are older than 24 hours.
+
+Again, this is just a rough outline and there are many details you'll need to work out based on your specific requirements, but this should give you a good idea of how to structure your application with Supabase. Supabase has solid real-time capabilities, which are crucial for this application, and they provide good compatibility with Next.js.
+
+...
+
+**User:**
+Cool let's get started. I made a project in Supabase and I have an API Key and Postgres connection config. How can I start adding schema and setting up the realtime estimation rooms with 24 hour expiration, and a unique "per 24 hours" 6 character uppercase alphanumeric code?
+
+...
+
+**System:**
+Let's start by setting up the database schema in Supabase.
+
+Create a new table named rooms: This will represent an estimation party or room. Here are the columns you should have:
+
+id: This should be a text field that will store your 6 character code. Make sure to set this as a primary key to ensure uniqueness.
+
+lead_name: This should be a text field to store the name of the person who joined the room first and will act as the lead.
+
+created_at: This is a timestamp field that will store the creation time of the room. Supabase automatically generates this field when you create a new row.
+
+Create a new table named users: This will represent a user in a room. Here are the columns you should have:
+
+id: This is an auto-incrementing integer and will be your primary key.
+
+name: This is a text field to store the unique name of the person in the room.
+
+room_id: This is a foreign key to the id in the rooms table. This will link a user to a room.
+
+Create a new table named estimations: This will represent an estimation for a work item. Here are the columns you should have:
+
+id: This is an auto-incrementing integer and will be your primary key.
+
+work_item_name: This is a text field to store the name of the work item.
+
+work_item_url: This is a text field to store the optional URL of the work item.
+
+room_id: This is a foreign key to the id in the rooms table. This will link an estimation to a room.
+
+user_id: This is a foreign key to the id in the users table. This will link an estimation to a user.
+
+estimate: This is a text field to store the Fibonacci sequence estimation or a question mark.
+
+The above schema should be sufficient for your needs. You can create the tables and columns in the Supabase dashboard's table editor.
+
+As for the unique 6 character code and 24-hour expiration, here's a basic approach:
+
+Unique Code: Whenever a room is created, generate a random 6 character uppercase alphanumeric string. Before saving the room in the database, check if a room with the same id already exists. If it does, generate a new code. You can use the Math.random().toString(36).substring(2, 8).toUpperCase() snippet in JavaScript to generate such a string.
+
+24-hour Expiration: As for the 24-hour expiration, Supabase doesn't have built-in support for automatic deletion of rows based on conditions. Therefore, you will need to handle this on the client-side application. Whenever a user attempts to join a room, compare the current timestamp with the created_at timestamp of the room. If the difference is more than 24 hours, the room is considered expired and the user is not allowed to join.
+
+This should give you a good starting point for setting up your database schema and handling the unique code generation and room expiration. From here, you can start building your Next.js application to interact with this database and handle the various user actions.
+
+...
+
+**User:**
+Here's the default create table query. Can you give me code samples for these?
+```sql
+create table table_name (
+  id bigint generated by default as identity primary key,
+  inserted_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  data jsonb,
+  name text
+);
+```
+
+...
+
+**System:**
+Sure, here are the SQL statements to create the rooms, users, and estimations tables in your Supabase database:
+
+Creating the rooms table:
+```sql
+CREATE TABLE rooms (
+    id CHAR(6) PRIMARY KEY,
+    lead_name TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
+Creating the users table:
+```sql
+CREATE TABLE users (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    name TEXT NOT NULL,
+    room_id CHAR(6) REFERENCES rooms(id),
+    inserted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
+Creating the estimations table:
+```sql
+CREATE TABLE estimations (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    work_item_name TEXT NOT NULL,
+    work_item_url TEXT,
+    room_id CHAR(6) REFERENCES rooms(id),
+    user_id BIGINT REFERENCES users(id),
+    estimate TEXT,
+    inserted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
+Please note that we are using CHAR(6) for id in rooms table and room_id in users and estimations tables, as we're creating a fixed length 6 character code.
+
+Also, these queries make sure that every room has at least one user (the lead) and every estimation is linked to a user and a room.
+
+Ensure you replace these queries in the Supabase SQL editor and run them.
+
+Remember, as per your requirements, the users and estimations tables are linked to rooms table with a foreign key room_id. If a room is deleted, you'll need to decide whether to delete all related users and estimations or not (CASCADE or SET NULL or NO ACTION). Please consider your use case carefully before making this decision.
+
+...
+
+**User:**
+Let's not use the 6 char id as the primary key for room since it's only "unique" for 24 hours and possible to collide in the future.
+
+Let's use a bigint generated for the id.
+
+We can use a "join_code" char(6)  with no special characters.
+
+...
+
+**System:**
+Understood, your point makes sense. The id field as a bigint will serve as a unique identifier across all times, and the join_code will serve as a session key valid for only 24 hours. Here are the revised SQL statements:
+
+Creating the rooms table:
+```sql
+CREATE TABLE rooms (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    join_code CHAR(6) NOT NULL,
+    lead_name TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
+*Note from Matt: the rest of them are the same*
+
+Please run these revised queries in the Supabase SQL editor to set up your tables.
+
+
+...
+
+**User:**
+Estimate shouldn't be null, but text seems good.
+
+...
+
+**System:**
+Alright, in the estimations table, you can add a NOT NULL constraint on the estimate field, which means an estimate has to be given when a record is created. Here's the updated SQL command for the estimations table:
+```sql
+CREATE TABLE estimations (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    work_item_name TEXT NOT NULL,
+    work_item_url TEXT,
+    room_id BIGINT REFERENCES rooms(id),
+    user_id BIGINT REFERENCES users(id),
+    estimate TEXT NOT NULL,
+    inserted_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+```
+
+Please run this query in the Supabase SQL editor to set up your estimations table accordingly.
+
+...
+
+**User:**
+Great, we have our 3 tables created in Supabase. Now let's create our Next.js app. We need a page/room/[join_code].tsx that uses getServerSideProps to validate the room is valid and available. Then on the client side we can join the room with websockets.
+
+If they are the first one to join and enter their name, we need to make them the Lead for the Estimation Party and save that in the "room" table as the lead name.
+
+...
+
+**System:**
+Awesome! To begin, you'll first need to set up your Next.js project. If you haven't already done this, you can use the following command:
+```bash
+npx create-next-app@latest --use-npm --example with-tailwindcss estimation-party-app
+```
+
+This command will create a new Next.js application with Tailwind CSS already set up.
+
+Next, install the Supabase client library:
+```bash
+npm install @supabase/supabase-js
+```
+
+Now, create a new file at pages/room/[join_code].tsx. Here's a basic setup of how this page might look:
+```jsx
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient("YOUR_SUPABASE_URL", "YOUR_SUPABASE_ANON_KEY");
+
+export async function getServerSideProps(context) {
+    const { join_code } = context.params;
+
+    const { data: room, error } = await supabase
+        .from('rooms')
+        .select()
+        .eq('join_code', join_code)
+        .single();
+
+    if (error || !room || new Date().getTime() - new Date(room.created_at).getTime() >= 24 * 60 * 60 * 1000) {
+        // If an error occurred, or if no room was found, or if the room is older than 24 hours, return a 404 status.
+        return {
+            notFound: true,
+        };
+    }
+
+    return {
+        props: {
+            room: room,
+        },
+    };
+}
+
+export default function Room({ room }) {
+    const [leadName, setLeadName] = useState(null);
+
+    useEffect(() => {
+        if (!room.lead_name) {
+            // Prompt the user for their name and set them as the lead.
+            const name = window.prompt("Please enter your name:");
+            if (name) {
+                setLeadName(name);
+                supabase
+                    .from('rooms')
+                    .update({ lead_name: name })
+                    .eq('id', room.id);
+            }
+        }
+    }, [room]);
+
+    // The rest of your component logic here...
+    return (
+        <div>
+            {/* Your room UI here... */}
+        </div>
+    );
+}
+```
+
+The getServerSideProps function is run by Next.js on each request to /room/[join_code], and it fetches the corresponding room from the Supabase database. If the room is not found, or if it is older than 24 hours, a 404 status is returned, which shows a default error page.
+
+In the Room component, the useEffect hook checks if the room has a lead. If it doesn't, it prompts the user to enter their name, and it sets them as the lead. This happens only on the first render, as room is listed as a dependency.
+
+This code gives you a basic structure for your estimation party rooms. It does not include the real-time updating of the room state, and it does not handle the case where the user cancels the name prompt. You'll need to add this functionality as you build out your application.
+
+Remember to replace "YOUR_SUPABASE_URL" and "YOUR_SUPABASE_ANON_KEY" with your actual Supabase URL and anon key. You can get these from the Supabase dashboard. Also remember to secure your anon key, as it has access to your Supabase database. Do not expose it in the client-side code.
+
+---
+
+## Getting started
+
+### Initializing the Next.js application
+
+Ok, so ChatGPT did a few things wrong here but was mostly on the right track.
+
+The command for Next.js was almost right. I'm going to use the commands from the [Tailwind docs instead](https://tailwindcss.com/docs/guides/nextjs).
+```bash
+npx create-next-app@latest my-project --typescript --eslint
+cd my-project
+
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+Then configure my tailwind.config.js include my /src folder.
+
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+ 
+    // Or if using `src` directory:
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+### Supabase NPM Dependency
+ChatGPT got this one right. I always double check the dependency since it's easy to be suggested the wrong or outdated package. [This](https://www.npmjs.com/package/@supabase/supabase-js) is indeed the right package.
+```bash
+npm install @supabase/supabase-js
+```
+
+### Next.js Page Component
+Let's look at the logic it wrote for the useEffect.
+```jsx
+    useEffect(() => {
+        if (!room.lead_name) {
+            // Prompt the user for their name and set them as the lead.
+            const name = window.prompt("Please enter your name:");
+            if (name) {
+                setLeadName(name);
+                supabase
+                    .from('rooms')
+                    .update({ lead_name: name })
+                    .eq('id', room.id);
+            }
+        }
+    }, [room]);
+```
+
+Based on what we prompted, we told it that it should ask for the Name of the user regardless of them being the first to join the room. The first to join should become the lead. Based on what they provided if you are not the lead you will NOT be prompted to enter a name. Let's prompt ChatGPT about this and clarify why we need to useState to manage the lead_name. This should be a realtime room update to listen for changes to the lead_name. We should also be able to see the other users in the room. 
+
+
+### Fighting with ChatGPT about .env secrets in Next.js
+**User:**
+Based on what we prompted, we asked that it should prompt for the Name of the user regardless of them being the first to join the room. The first to join should become the lead. Based on what they provided if you are not the lead you will NOT be prompted to enter a name. Let's prompt ChatGPT about this and clarify why we need to useState to manage the lead_name. This should be a realtime room update to listen for changes to the lead_name. We should also be able to see the other users in the room. 
+
+...
+
+**System:**
+Apologies for the confusion. You're right; it makes more sense to prompt for a name from every participant and assign the role of lead to the first participant.
+
+First, let's refactor the logic to accommodate this change.
+```jsx
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient("YOUR_SUPABASE_URL", "YOUR_SUPABASE_ANON_KEY");
+
+export async function getServerSideProps(context) {
+    const { join_code } = context.params;
+
+    const { data: room, error } = await supabase
+        .from('rooms')
+        .select()
+        .eq('join_code', join_code)
+        .single();
+
+    if (error || !room || new Date().getTime() - new Date(room.created_at).getTime() >= 24 * 60 * 60 * 1000) {
+        // If an error occurred, or if no room was found, or if the room is older than 24 hours, return a 404 status.
+        return {
+            notFound: true,
+        };
+    }
+
+    return {
+        props: {
+            room: room,
+        },
+    };
+}
+
+export default function Room({ room }) {
+    const [name, setName] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [isLead, setIsLead] = useState(false);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const { data: users, error } = await supabase
+                .from('users')
+                .select()
+                .eq('room_id', room.id);
+
+            if (!error && users) {
+                setUsers(users);
+            }
+        };
+
+        fetchUsers();
+
+        const name = window.prompt("Please enter your name:");
+        if (name) {
+            setName(name);
+            if (!room.lead_name) {
+                supabase
+                    .from('rooms')
+                    .update({ lead_name: name })
+                    .eq('id', room.id);
+                setIsLead(true);
+            }
+            supabase
+                .from('users')
+                .insert([
+                    { name, room_id: room.id }
+                ]);
+        }
+    }, [room]);
+
+    useEffect(() => {
+        const subscription = supabase
+            .from(`rooms:id=eq.${room.id}`)
+            .on('*', payload => {
+                setIsLead(payload.new.lead_name === name);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeSubscription(subscription);
+        };
+    }, [room, name]);
+
+    useEffect(() => {
+        const subscription = supabase
+            .from(`users:room_id=eq.${room.id}`)
+            .on('*', () => fetchUsers())
+            .subscribe();
+
+        return () => {
+            supabase.removeSubscription(subscription);
+        };
+    }, [room]);
+
+    // The rest of your component logic here...
+    return (
+        <div>
+            {/* Your room UI here... */}
+        </div>
+    );
+}
+```
+
+This version of the Room component does the following:
+
+1. When the component mounts, it fetches the existing users in the room. Then, it prompts the user for their name. If they enter a name, it checks if the room already has a lead. If it doesn't, it sets the user as the lead. Then, it adds the user to the users table in the database.
+
+2. It subscribes to changes to the rooms table and updates the isLead state whenever the lead_name of the room changes.
+
+3. It also subscribes to changes to the users table and refetches the users whenever a change is made.
+
+Please remember to replace "YOUR_SUPABASE_URL" and "YOUR_SUPABASE_ANON_KEY" with your actual Supabase URL and anon key. Also, you need to secure your anon key, as it has access to your Supabase database. Do not expose it in the client-side code.
+
+The Room component now keeps track of whether the user is the lead and the list of users in the room. It updates these states in real-time as changes are made in the database. Please adjust the JSX to present these details as you'd like.
+
+...
+
+**User:**
+Could we initialize the supabase client in the getServersideProps and pass it to the client as a prop? I don't want to leak the anon key, and initializing outside of the getServerSideProps: "Is that safe to do?" Will it be revealed in the client if we do that?
+
+...
+
+**System:**
+No, you should not pass the Supabase client as a prop from getServerSideProps. Anything returned from getServerSideProps will be serialized and sent to the client, so this would expose your Supabase client, including your anon key, to the client.
+
+When you use the Supabase client on the server side (as in getServerSideProps), you should use a service role key that has more permissions than the anon key. But you must be careful to keep this key secret, as it can give full access to your Supabase database.
+
+Initializing the Supabase client outside of getServerSideProps on the client side, like in the example I provided earlier, is safe and does not expose the anon key. The key will not be included in the client-side bundle, because Next.js knows not to include it.
+
+For example, you can create a new file called lib/supabase.js with the following code:
+```jsx
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
+```
+
+In next.config.js, add:
+```jsx
+module.exports = {
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: 'YOUR_SUPABASE_URL',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+  },
+}
+```
+
+Then in your pages/room/[join_code].tsx, you can import this client:
+```jsx
+import { supabase } from '../../lib/supabase'
+```
+
+This way, the client is created once and reused throughout your application, and you won't have to worry about leaking the key.
+
+Remember to replace 'YOUR_SUPABASE_URL' and 'YOUR_SUPABASE_ANON_KEY' with your actual Supabase URL and anon key, and keep these variables secret.
+
+...
+
+**User:**
+While that seems correct, I worry about using NEXT_PUBLIC since wouldn't that include my Anon Key in the client side bundle? That should be backend only like with a .env file, and not prepended with NEXT_PUBLIC, right?
+
+*Note from Matt: I argued a bit with ChatGPT and provided the docs from [Next.js for environment variables](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables).*
+
+...
+
+**System:**
+Thank you for pointing out this important detail from the Next.js documentation.
+
+In a Next.js application, server-side environment variables should be stored in a `.env.local` file. They can then be accessed in getStaticProps(), getServerSideProps(), or API routes using process.env.
+
+Therefore, for your use case, you should store your Supabase credentials in the `.env.local` file as follows:
+
+```bash
+SUPABASE_URL=your-supabase-url
+SUPABASE_SERVICE_KEY=your-supabase-service-key
+```
+
+These variables can then be accessed securely in server-side code as follows:
+
+```js
+import { createClient } from '@supabase/supabase-js'
+
+export const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+```
+You're correct that environment variables should not be prefixed with NEXT_PUBLIC_ unless you explicitly want them to be available on the client side. For your Supabase credentials, you should only use them server-side, so you should not use the NEXT_PUBLIC_ prefix.
+
+Keep in mind that while these environment variables are available in `getStaticProps()`, `getServerSideProps()`, and API routes, they are not exposed to the client side and will not be included in the client-side JavaScript bundle, ensuring their security.
+
+...
+
+**User:**
+Do we need room in the state if that's being provided from getServerSideProps?
+
+Our supabase select query should filter only for rooms created in the last 24 hours. If there is no room found we should display "Sorry this join code is invalid" with a link to go to the homepage '/'.
+
+There is no reason to call it "initialRoom" because there is either 0 or 1 room(s). It's just room. initialUsers is valid, because we need to update in the client if there are new users that join or leave after initial load.
+
+Can you also show UI code in Tailwind UI to prompt for the name as you join a valid room?
+
+We'll show an `<h2>` conditionally that says "You are the lead!" and give you the button options to "Reveal Estimations" and "Start New Estimation" (which opens a modal to enter a ticket name and optionally a ticket url), with a "Start" or "Cancel" option.
+
+Start New Estimation is only shown if there is not a current estimation.
+Reveal Estimations is only shown while there is a current estimation.
+
+We need a list of users visually. All users need a visual indicator of when each user has made an estimation.
+
+We also need to display a "Card" for each User, which is revealed with their answer if they made one.
+
+...
+
+**System:**
+Absolutely, your point about the room state is valid. As we are directly providing the room from getServerSideProps, there's no need to manage it in the local state. We can use it directly from the props.
+
+Also, as you correctly mentioned, the select query for the rooms should indeed filter for rooms created in the last 24 hours. I'll update that in the code.
+
+*Note from Matt: ChatGPT gave me the `getServerSideProps` code and the jsx separately, so I'm combining them here.*
+Here's the updated getServerSideProps method. Next, for the UI code to prompt for a user's name and other components, we will use Tailwind UI. Let's create a simple form to get the user's name and update the Room component:
+```jsx
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+
+const Room = ({ room, initialUsers, error }) => {
+  const [users, setUsers] = useState(initialUsers);
+  const [lead, setLead] = useState(room.lead_name);
+  const [name, setName] = useState('');
+  const [estimationInProgress, setEstimationInProgress] = useState(false);  // Mock state for now
+
+  // ...
+
+  if (error) {
+    return (
+      <div className="text-center">
+        <p className="text-2xl">{error}</p>
+        <a className="text-blue-600" href="/">Go to Homepage</a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Welcome to the estimation room
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Please enter your name
+          </p>
+        </div>
+        <form className="mt-8 space-y-6">
+          <input type="hidden" name="remember" defaultValue="true" />
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="name" className="sr-only">Name</label>
+              <input id="name" name="name" type="text" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Name" onChange={e => setName(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+              </span>
+              Join Room
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {lead === name && 
+        <h2>You are the lead!</h2>
+      }
+
+      {/* Mocked estimation controls for lead */}
+      {lead === name && !estimationInProgress && 
+        <button onClick={() => setEstimationInProgress(true)}>Start New Estimation</button>
+      }
+      {lead === name && estimationInProgress && 
+        <button onClick={() => setEstimationInProgress(false)}>Reveal Estimations</button>
+      }
+
+      {/* Mocked list of users */}
+      <div>
+        {users.map(user => (
+          <div key={user.id}>
+            {user.name} {user.hasEstimated && <span>Has estimated</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export async function getServerSideProps(context) {
+  const { join_code } = context.params;
+  
+  // Get current time and time 24 hours ago
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const { data: rooms } = await supabase
+    .from('room')
+    .select('*')
+    .eq('join_code', join_code)
+    .gte('created_at', oneDayAgo);
+
+  const room = rooms[0];
+
+  if (!room) {
+    return {
+      props: {
+        error: 'Sorry this join code is invalid'
+      },
+    };
+  }
+
+  const { data: users } = await supabase
+    .from('users')
+    .select('*')
+    .eq('room_id', room.id);
+
+  return {
+    props: { room, initialUsers: users },
+  };
+}
+export default Room;
+```
+
+This is a basic UI setup that you can start with. You would need to further customize this to match your exact requirements, including setting up actual estimation controls, user list, estimation cards, etc. The above code also does not yet handle the submission of the name input, you would need to add code to store this in the backend and handle the joining of the user to the room.
+
+Also, remember to install the Tailwind CSS library in your project and set up your tailwind.config.js accordingly if you haven't done so already.
+
+...
+
+**User:**
+Can we have validation that the name is valid?
+
+Also we should use a Next.js API route when submitting the name, so as to conceal our API Key.
+
+Can you show me the useEffects again based off our last prompt?
+
+...
+
+**System:**
+Absolutely, we can add some simple front-end validation to ensure the name is entered before submitting the form. For the sake of simplicity, we'll just ensure the name field isn't empty, but you can add more validation rules as per your requirements.
+
+*Note from Matt: I'm combining all the code together for brevity and adding extra comments for my own use later.*
+The updated component would look like this:
+```jsx
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+
+const Room = ({ room, initialUsers, error }) => {
+  const [users, setUsers] = useState(initialUsers);
+  const [lead, setLead] = useState(room.lead_name);
+  const [name, setName] = useState('');
+  const [estimationInProgress, setEstimationInProgress] = useState(false);  // Mock state for now
+  const [formValid, setFormValid] = useState(false);     // State for form validation
+
+   useEffect(() => {
+    // Validation logic here. Update the formValid state accordingly.
+    // For simplicity, we're just checking the name isn't empty.
+    if (name.trim()) {
+      setFormValid(true);
+    } else {
+      setFormValid(false);
+    }
+  }, [name]);
+
+  
+    useEffect(() => {
+        const subscription = supabase
+            .from(`rooms:id=eq.${room.id}`)
+            .on('*', payload => {
+                setIsLead(payload.new.lead_name === name);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeSubscription(subscription);
+        };
+    }, [room, name]);
+
+    useEffect(() => {
+        const subscription = supabase
+            .from(`users:room_id=eq.${room.id}`)
+            .on('*', () => fetchUsers())
+            .subscribe();
+
+        return () => {
+            supabase.removeSubscription(subscription);
+        };
+    }, [room]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formValid) {
+      return;
+    }
+
+    // Create API endpoint in Next.js, such as /api/join-room
+    // Send a POST request to this endpoint with the name and room id as the payload.
+    // The backend will handle joining the room and return the appropriate response.
+    const res = await fetch('/api/join-room', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name,
+        roomId: room.id,
+      })
+    });
+
+    const { success, error } = await res.json();
+
+    if (success) {
+      // handle success...
+    } else {
+      // handle error...
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="text-center">
+        <p className="text-2xl">{error}</p>
+        <a className="text-blue-600" href="/">Go to Homepage</a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Welcome to the Estimation Party Room! Join Code: {room.join_code}
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Please enter your name
+          </p>
+        </div>
+        <form className="mt-8 space-y-6">
+          <input type="hidden" name="remember" defaultValue="true" />
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="name" className="sr-only">Name</label>
+              <input id="name" name="name" type="text" required className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Name" onChange={e => setName(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+              </span>
+              Join Room
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {lead === name && 
+        <h2>You are the lead!</h2>
+      }
+
+      {/* Mocked estimation controls for lead */}
+      {lead === name && !estimationInProgress && 
+        <button onClick={() => setEstimationInProgress(true)}>Start New Estimation</button>
+      }
+      {lead === name && estimationInProgress && 
+        <button onClick={() => setEstimationInProgress(false)}>Reveal Estimations</button>
+      }
+
+      {/* Mocked list of users */}
+      <div>
+        {users.map(user => (
+          <div key={user.id}>
+            {user.name} {user.hasEstimated && <span>Has estimated</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export async function getServerSideProps(context) {
+  const { join_code } = context.params;
+  
+  // Get current time and time 24 hours ago
+  const now = new Date();
+  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const { data: rooms } = await supabase
+    .from('room')
+    .select('*')
+    .eq('join_code', join_code)
+    .gte('created_at', oneDayAgo);
+
+  const room = rooms[0];
+
+  if (!room) {
+    return {
+      props: {
+        error: 'Sorry this join code is invalid'
+      },
+    };
+  }
+
+  const { data: users } = await supabase
+    .from('users')
+    .select('*')
+    .eq('room_id', room.id);
+
+  return {
+    props: { room, initialUsers: users },
+  };
+}
+export default Room;
+```
+
+Next, you'll want to create an API route /api/join-room.js to handle the joining of the room. Here's a basic example of what the API route could look like:
+```js
+import { supabase } from '../../lib/supabase';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed.' });
+  }
+
+  const { name, roomId } = req.body;
+
+  const { error } = await supabase.from('users').insert([
+    { name, room_id: roomId },
+  ]);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  return res.status(200).json({ success: true });
+}
+```
+
+Now, when a user submits the form, their name and the room id is sent to this API route which inserts a new record into the users table in your Supabase database. It then returns a success or error message depending on the outcome, which you can then handle in your Room component.
+
+## Conclusion
+
+I'm running out of messages for ChatGPT Plus so I'm gonna end this as a Part 1 in a series of using ChatGPT to create a live Estimation app with Next.js and Supabase. In the next part, we'll actually create the Next.js application and see how far we get with the suggestions from ChatGPT.
+
+Please reach out on [LinkedIn](https://www.linkedin.com/in/mattgroff/) or via [Email](mailto:mattlgroff@gmail.com) if you have any questions or feedback. I'd love to hear from you!
