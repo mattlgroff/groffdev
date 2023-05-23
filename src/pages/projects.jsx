@@ -6,8 +6,18 @@ import { SimpleLayout } from '@/components/SimpleLayout'
 import logoHome from '@/images/logos/home.svg'
 import logoBun from '@/images/logos/bun.svg'
 import logoRuby from '@/images/logos/ruby.svg'
+import logoParty from '@/images/logos/party.png'
 
 const projects = [
+  {
+    name: 'Estimation Party',
+    description: "A simple solution to Planning Poker. Create a room, invite your team, and start estimating. I built this full-stack realtime application using Next.js and Supabase.",
+    link: {
+      href: 'https://estimationparty.com',
+      label: 'estimationparty.com',
+    },
+    logo: logoParty,
+  },
   {
     name: 'Ask CLI',
     description:
