@@ -1,0 +1,197 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-05-23',
+  title: 'Scraping with Next.js and React Server Components',
+  description:
+    'How I made a web scraper using a React Server Component in a Next.js app.',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+Next.js is a powerful React framework that allows you to build full-stack application. It has support for both React Client and Server components. You can get away with some interestings things including scraping web content, because basically anything you can do in a Node server you can do in a Next.js React Server Component, within reason. If you deploy your Next.js app to Vercel for instance, it uses a Lambda runtime which isn't quite 1-1 with Node.js.
+
+I was working on a personal tool that needed to [fetch the latest interest rate for home loans with a credit union](https://github.com/mattlgroff/orlando-home-affordability-navy-fed). At first I was using puppetteer but it unfortunately won't work on Vercel and here's why:
+
+- Vercel's Lambda runtime does not have Chrome or Chromium installed, and you cannot install it.
+- You can install `puppetteer-core` and `chrome-aws-lambda` but it's not going to work unfortunately because Vercel has a file size limit of 50MB and with this Chromium Lambda installed it just barely went over at 53MB. "The Serverless Function "index" is 53.95mb which exceeds the maximum size limit of 50mb."
+
+So wait, does that mean we can't actually scrape in Next.js?
+
+Well, kind of!
+
+If you need puppetteer you can use it locally because Next.js runs on the Node V8 runtime when you are working locally off of `npm run dev` or `npm run start.` You might be able to get away with using Next.js with another provider who doesn't have the 50MB restrictions but I'm not aware of one.
+
+Example code for scraping with puppetteer, that would have worked if Chromium was 4MB smaller:
+```tsx
+import chromium from 'chrome-aws-lambda';
+interface CreditRange {
+    value: string;
+    min: string;
+    max: string;
+    rate?: string;
+}
+
+// This function is not actually called but I spent a lot of time making it work so I'm not removing it.
+export async function scrapeNerdWallet(): Promise<CreditRange[]> {
+    try {
+      const browser = await chromium.puppeteer.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath,
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
+    });
+        const page = await browser.newPage();
+        await page.setViewport({ width: 1000, height: 800 }); // Set viewport
+        await page.goto('https://www.nerdwallet.com/mortgages/how-much-house-can-i-afford/calculate-affordability');
+
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds for any modals
+
+        // Attempt to close modal if it exists
+        if ((await page.$('[aria-label="Close dialog"]')) !== null) {
+            await page.click('[aria-label="Close dialog"]');
+        }
+
+        // Press Escape key to close any possible pop-ups
+        await page.keyboard.press('Escape');
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait another 3 seconds for any changes
+
+        const options: string[] = await page.$$eval('.interest-rate-control-credit-score-select-option', options =>
+            options.map(option => option.querySelector('.interest-rate-control-credit-score-select-option-value')?.textContent || '')
+        );
+
+        const categories: CreditRange[] = [];
+        for (let i = 0; i < options.length; i++) {
+            await page.click(`.interest-rate-control-credit-score-select-option:nth-child(${i + 1})`);
+            await new Promise(r => setTimeout(r, 2000)); // Wait for the page to update
+
+            // Check the specific elements of the page after each click
+            const min = await page.$eval('.interest-rate-control-credit-score-select-option-min', el => el.textContent || '');
+            const max = await page.$eval('.interest-rate-control-credit-score-select-option-max', el => el.textContent || '');
+            const rate = await page.$eval('.interest-rate-control-method h3 span', span => span.textContent);
+            categories.push({
+                value: options[i],
+                min: min,
+                max: max,
+                rate: parseFloat(rate?.replace('%', '') || '0').toFixed(3),
+            });
+        }
+
+        await browser.close();
+        return categories;
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
+```
+
+In this example I needed puppetteer because the content was hiding behind a pop-up modal that I needed to close as well as having to click through to get all of the interested rates for the credit score ranges.
+
+But if you don't need puppetteer, you can still use a React Server Component to scrape web content. 
+
+We're going to use `cheerio` which is a simple HTML scraper with a jQuery-like syntax.
+
+In my `pages/index.tsx` file I have this `getServerSideProps` function. I use `getServerSideProps` and not `getStaticProps` because I want the content to be dynamically rendered at runtime rather than build time.
+
+```tsx
+export async function getServerSideProps() {
+    const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : null;
+
+    const interestRatesFromNavyFederal = await fetchInterestRates(redis);
+
+    return { props: { interestRatesFromNavyFederal } };
+}
+```
+
+This calls a function called `fetchInterestRates` which I put in a separate file to prevent the page component from getting any longer than it already was.
+
+```tsx
+import Redis from 'ioredis';
+import { fetchNavyFederal } from './navy-federal';
+
+export async function fetchInterestRates(redis: Redis | null) {
+    try {
+        if (redis) {
+            let cachedData: any = await redis.get('navyFederalInterestRates');
+            if (cachedData) {
+                const data = JSON.parse(cachedData);
+
+                if (data.length > 0) {
+                    return data;
+                }
+            }
+
+            const freshData = await fetchNavyFederal();
+            await redis.set('navyFederalInterestRates', JSON.stringify(freshData), 'EX', 1 * 60 * 60);
+
+            return freshData;
+        }
+    } catch (err) {
+        console.error(err);
+        return {
+            source: 'error',
+            data: [],
+        };
+    }
+}
+```
+
+I'm using Redis to cache the data for an hour so that I don't have to scrape the data every time someone visits the page. I'm using the `ioredis` package to connect to Redis. I'm using the free tier of Redis from [Upstash](https://upstash.com).
+
+Again this file imports another file where I actually do the scraping.
+
+```tsx
+import { InterestRate } from '@deps/types';
+import { load } from 'cheerio';
+
+export async function fetchNavyFederal(): Promise<InterestRate[]> {
+    try {
+        const response = await fetch(
+            'https://www.navyfederal.org/loans-cards/mortgage/mortgage-rates/conventional-fixed-rate-mortgages.html'
+        );
+        const body = await response.text();
+
+        const $ = load(body);
+        const loanTerms: InterestRate[] = [];
+
+        $('.table-resp tbody tr').each((_, row) => {
+            const columns = $(row).find('td');
+            const term = $(row).find('th').text().trim();
+            const rate = parseFloat(columns.eq(0).text().replace('%', ''));
+            const discountPoints = parseFloat(columns.eq(1).text());
+
+            loanTerms.push({
+                term: term,
+                rate: rate,
+                discountPoints: discountPoints,
+                rateWithoutDiscount: rate + discountPoints * 0.25, // Assuming each discount point reduces the rate by 0.25%
+            });
+        });
+
+        return loanTerms;
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
+```
+
+This is a pretty great example of an easy-to-scrape site. The data is in a table and the table has a very specific class name. I can use cheerio to load the HTML and then use jQuery-like syntax to find the table and then loop through each row and column to get the data I need.
+
+The JSON content I end up deliverying to my `pages/index.tsx` and my Redis cache looks like:
+```JSON
+[ 
+  { "term": "15 Year", "rate": 5.5, "discountPoints": 0.25, "rateWithoutDiscount": 5.5625 }, 
+  { "term": "15 Year Jumbo", "rate": 5.75, "discountPoints": 0.25, "rateWithoutDiscount": 5.8125 }, 
+  { "term": "30 Year", "rate": 6, "discountPoints": 0.5, "rateWithoutDiscount": 6.125 }, 
+  { "term": "30 Year Jumbo", "rate": 6, "discountPoints": 0.5, "rateWithoutDiscount": 6.125 } 
+]
+```
+
+This credit union updates their rates daily so I'm fine with caching the data for an hour. If you're scraping a site that updates less frequently, you can cache the data for longer.
+
+## Conclusion
+The idea of scraping web content with a React Server Component is pretty exciting. It's a great way to get data from a site that doesn't have an API. It's also a great way to get data from a site that does have an API but the API is either too complicated or too slow. With Next.js you "almost" don't need a backend. I was very excited to get puppetteer working locally only to be dissapointed that it wouldn't run on Vercel, that would have been too cool. But I'm still very happy with the results.
