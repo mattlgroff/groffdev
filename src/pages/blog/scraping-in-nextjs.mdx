@@ -23,9 +23,10 @@ Well, kind of!
 
 If you need puppetteer you can use it locally because Next.js runs on the Node V8 runtime when you are working locally off of `npm run dev` or `npm run start.` You might be able to get away with using Next.js with another provider who doesn't have the 50MB restrictions but I'm not aware of one.
 
-Example code for scraping with puppetteer, that would have worked if Chromium was 4MB smaller:
+Example code for scraping with `puppetteer-core` and `chrome-aws-lambda`, that would have worked if Chromium was 4MB smaller:
 ```tsx
 import chromium from 'chrome-aws-lambda';
+
 interface CreditRange {
     value: string;
     min: string;
