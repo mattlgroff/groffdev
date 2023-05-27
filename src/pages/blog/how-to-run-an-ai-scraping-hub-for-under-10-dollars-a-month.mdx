@@ -16,6 +16,8 @@ Running a web scraping service usually requires a substantial investment in infr
 
 ## The Architecture
 
+If you're curious about why I chose to use Cloudflare Workers for scraping and want to delve into the code specifics and the restrictions, I recommend checking out my previous article on [Scraping with Cloudflare Workers and OpenAI](https://groff.dev/blog/scraping-in-cloudflare-workers-with-openai). In that article, I thoroughly discuss the rationale and advantages/disadvantages of this particular setup.
+
 This scraping hub project leverages a few key technologies: a Node.js Scheduler Service, two Cloudflare Workers, and a combination of Neon PostgreSQL, Redis via Upstash, and Render.com for deployment. Here's a quick rundown of how each component fits in:
 
 - **Node.js Scheduler Service**: This application polls the Neon PostgreSQL database every 15 minutes, retrieving the latest cron schedule from the `scraping_job` table. The service is deployed on Render.com.
