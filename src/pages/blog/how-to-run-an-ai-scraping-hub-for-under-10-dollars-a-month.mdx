@@ -1,0 +1,79 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-05-27',
+  title: 'How to Run an AI Scraping Hub for Under $10 a Month',
+  description:
+    "By taking full advantage of generous free tiers of cloud services, you can run a scraping hub for under $10 a month.",
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+# How to Run an AI Scraping Hub for Under $10 a Month
+
+Running a web scraping service usually requires a substantial investment in infrastructure and computing power. However, with the right tech stack and a little ingenuity, you can create a robust AI scraping hub for under $10 a month. This post will guide you through the setup and use of an affordable scraping hub, based on [my project](https://github.com/mattlgroff/cloudflare-scraper-openai) on Github.
+
+## The Architecture
+
+This scraping hub project leverages a few key technologies: a Node.js Scheduler Service, two Cloudflare Workers, and a combination of Neon PostgreSQL, Redis via Upstash, and Render.com for deployment. Here's a quick rundown of how each component fits in:
+
+- **Node.js Scheduler Service**: This application polls the Neon PostgreSQL database every 15 minutes, retrieving the latest cron schedule from the `scraping_job` table. The service is deployed on Render.com.
+
+- **Cloudflare Worker 1 - Scraper**: As the workhorse of the hub, this worker is responsible for executing the web scraping tasks.
+
+- **Cloudflare Worker 2 - Apollo GraphQL Server**: This worker provides a GraphQL API that allows clients to create, read, and update scraping cron jobs.
+
+- **Neon PostgreSQL**: A serverless PostgreSQL database where scraping job schedules and historical job results are stored.
+
+- **Redis with Upstash.com**: Used for caching the scraped data.
+
+Here is a simplified diagram of how these services interact:
+
+```
+Cloudflare Worker 1 (Scraper) <-------- Node.js Scheduler Service -------> Neon PostgreSQL
+   ^                                       ^                                      |
+   |                                       |                                      v
+   |                                       |                                 Redis (Cache)
+   |                                       |
+Cloudflare Worker 2 (GraphQL Server) <----|
+```
+
+Initially, I considered using Rails with Sidekiq to create the UI dashboard and scheduling service. However, deploying Rails and Sidekiq turned out to be more complicated than anticipated, making the solution unattractive.
+
+I also tried using Bun as a task scheduler, but it wasn't compatible with Neon Postgres or Node-Cron. Therefore, I settled on a simple Node Express server with a very basic dashboard for visualizing the jobs, their schedules, and the results of the last successful scrape.
+
+## Setting Up Your Scraping Hub
+
+Here's a preview of what the scheduler dashboard looks like:
+
+```
+Bun Scheduler Dashboard
+Uptime: 277 seconds
+Job ID	URL	Selector	Description	Latest Content	Cron Schedule	Cron Schedule Described
+fcb4fb7e-f20c-4486-b0c7-568d948257e4	https://www.somecreditunion.org/loans-cards/mortgage/mortgage-rates/conventional-fixed-rate-mortgages.html	table, thead, tbody, tr, th, td	There is a Rates tables which has the headers: 'Term' 'Interest Rates As Low As' 'Discount Points' 'APR As Low As' please fetch them in the following format: 'term' 'rate' 'discount_points' and 'apr'. The key for the json array should be 'rates'	❌	0 7 * * *	At 07:00 AM US Eastern
+```
+
+The scheduler-service application can be spun up using Docker Compose. In the root directory of the project, you will find a `docker-compose.yml` file. Run the command `docker-compose up` in your terminal to start the service, and ensure Docker is installed on your machine.
+
+More specific instructions on how to use the individual Cloudflare workers are available in their respective README.md files in the worker directories. You can use the `wrangler` CLI tool to deploy the workers to your Cloudflare account.
+
+## The Costs
+
+You might be surprised to learn that this entire setup, with its multiple services and advanced capabilities, costs less than $10 per month. Here's the cost breakdown:
+
+| Service             | Cost    |
+|---------------------|---------|
+| Render.com          | $7/mo   |
+| Cloudflare Workers  | Free tier    |
+| Redis (Upstash.com) | Free tier    |
+| Neon Serverless PostgreSQL | Free tier    |
+| **Total**           | **$7/mo** |
+
+Yes, you read that right. For the price of a fancy coffee, you can have a powerful web scraping hub running round the clock. Coupled with OpenAI's reasonable costs, this solution remains well below the $10 a month mark. Get that data.
+
+## Conclusion
+
+If you're in need of a simple and cost-effective web scraping solution, this project might be the right fit for you. Check out the [Github repository](https://github.com/mattlgroff/cloudflare-scraper-openai) to get started. Embrace the world of affordable, efficient, and powerful web scraping, all for under $10 a month. Happy scraping!
+
+I'd love to hear your thoughts on [LinkedIn](https://www.linkedin.com/in/mattgroff/).
