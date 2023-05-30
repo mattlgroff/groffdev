@@ -1,0 +1,427 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-05-29',
+  title: 'Bridging the Gap Between Next.js and Rails: Introducing the next-rails npm Package',
+  description: 'In this post, I introduce next-rails, a new npm package I developed to bring the efficiency of Rails-like features to Next.js, aimed at improving your full-stack development experience.',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+I only really got started with Ruby on Rails earlier this year, but after Jordan Smith showed me `rails generate scaffold` and how easy it was to quickly generate new CRUD boilerplate I fell in love.
+
+I've been working with Next.js for a while now, but I've been missing out on those backend cli features that make Rails so fast to use to get started.
+
+So, I conceptualized a package that would let me do the same thing with Next.js. I've never "really" made an npm package before, so I figured this would be a good opportunity to learn.
+
+Here's what I've come up with: [`next-rails`](https://www.npmjs.com/package/next-rails)
+
+# Next Rails CLI
+
+A CLI for generating a Next.js app with Rails CLI-like features.
+
+- Next.js 13.14.4 ✅
+- TypeScript ✅
+- ESLint ✅
+- Tailwind CSS ✅
+- Knex ✅
+- PostgreSQL ✅
+- Prettier ✅
+- Husky ❌
+- Lint Staged ❌
+
+✅ = Implemented
+❌ = Not Implemented (Yet)
+
+You can either install it globally with `npm install -g next-rails` or use it with npx like `npx next-rails`.
+
+## What is this?
+
+The goal of this package is to make a `scaffold` command that uses the familiar Ruby on Rails CLI syntax to generate:
+
+- A new set of pages in the `src/pages` directory for each of the CRUD actions (index, show, new, edit)
+- A new api route in the `src/pages/api` directory to support these pages
+- A new model in the `src/db/models` directory that includes a Typescript Interface for the model as well as some metadata that can be used to generate the content on the pages
+- A new migration in the `src/db/migrations` directory that can be used to create the database table for the model
+
+I've got a lot of work to do to get this to where I want it to be, but I'm excited to see where it goes. I currently have a very basic index page being created for the "views" but the api routes, model, and migrations are already working. If you run into any problems file an issue on the [GitHub Repository](https://github.com/mattlgroff/next-rails).
+
+## Why Node?
+
+Node seemed like a good fit as that's what Next.js already requires. I considered Bun, but it doesn't have child_process which is really critical in this app and it's found throughout it to automate the creation of files and directories.
+
+## Why Knex?
+
+I originally wanted to use [sequelize](https://www.npmjs.com/package/sequelize) for this project because it's migration/seed syntax matches that of the Rails CLI out of the box (i.e `db:migrate db:seed db:migration:generate`). However it turned out to not play nicely. [Knex](https://www.npmjs.com/package/knex) on the other hand only needed 2 files to get up and running on Next.js and supported the same type of migration commands as sequelize did, so it became a good match. I did not go with Prisma or DrizzleORM because they are schema-first and generate migrations automatically for you. That might be fine and perfectly safe but it didn't match the way I was used to doing things with Rails or Sequelize, so they were not a good fit for this package.
+
+## What was the hardest part?
+
+Embarking on this project was not without its challenges. So, what was the hardest part?
+
+Writing code for code generation proved to be a challenging endeavor. As this was my initial venture into this domain, I'm aware that there might be more efficient methods than the ones I've utilized. Notably, AI technology such as ChatGPT has suggested a shift from solely using string interpolation towards the implementation of a templating engine like Handlebars. While I'm still pondering this transition, I'm confident that this is an area ripe with opportunities for improvement and innovation.
+Here's a code snippet to get an idea of what I'm talking about, this is generating the first version of the "index" page:
+
+```javascript
+function generateIndexPage(singularModelName, pluralModelName, options) {
+  const modelName =
+    singularModelName.charAt(0).toUpperCase() + singularModelName.slice(1)
+  const PascalPluralModelName =
+    pluralModelName.charAt(0).toUpperCase() + pluralModelName.slice(1)
+
+  // Helper function to convert snake_case to Title Case
+  function toTitleCase(str) {
+    return str
+      .replace('_', ' ')
+      .replace(
+        /\w\S*/g,
+        (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+      )
+  }
+
+  // Construct the model metadata
+  const modelMetadata = {
+    id: { label: 'ID', display: (value) => value },
+    created_at: {
+      label: 'Created At',
+      display: (value) => value?.toLocaleString() || '',
+    },
+    updated_at: {
+      label: 'Updated At',
+      display: (value) => value?.toLocaleString() || '',
+    },
+  }
+
+  // Add each option as a field in the metadata
+  options.forEach((option) => {
+    const [name, type] = option.split(':')
+    const label = toTitleCase(name)
+    let displayFunction
+
+    switch (type) {
+      case 'boolean':
+        displayFunction = (value) => (value ? 'Yes' : 'No')
+        break
+      case 'date':
+        displayFunction = (value) => (value ? value.toISOString() : '')
+        break
+      default:
+        displayFunction = (value) => value
+        break
+    }
+
+    modelMetadata[name] = { label: label, display: displayFunction }
+  })
+
+  const fields = Object.keys(modelMetadata)
+
+  // Constructing the JSX for each row of data
+  const tdJsx = fields
+    .map(
+      (field) => `
+<td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900">
+  {${singularModelName}.${field} !== null && typeof ${singularModelName}.${field} !== 'undefined' ? modelMetadata['${field}'].display(${singularModelName}.${field}) : ""}
+</td>
+`
+    )
+    .join('')
+
+  const mapJsx = `
+const fieldData = ${pluralModelName}.map(${singularModelName} => (
+  <tr key={${singularModelName}.id}>
+    ${tdJsx}
+    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+      <Link href="/${pluralModelName}/{${singularModelName}.id}">
+        Show
+      </Link>
+    </td>
+  </tr>
+));
+`
+
+  const viewCode = `
+    import { GetServerSideProps } from "next";
+    import { ${modelName}, ${singularModelName}Metadata as modelMetadata } from "@deps/db/models/${singularModelName}";
+    import Link from "next/link";
+    import { getKnex } from "@deps/db";
+    
+    interface ${PascalPluralModelName}PageProps {
+      ${pluralModelName}: ${modelName}[];
+    }
+    
+    const ${PascalPluralModelName}Page = ({ ${pluralModelName} }: ${PascalPluralModelName}PageProps) => {
+      ${mapJsx}
+      return (
+        <div className="mt-3 flow-root">
+          <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead className="bg-gray-50">
+                  <tr>
+                    ${fields
+                      .map(
+                        (field) => `
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    >
+                      ${modelMetadata[field].label}
+                    </th>
+                    `
+                      )
+                      .join('')}
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {fieldData}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    };
+    
+    export const getServerSideProps: GetServerSideProps = async () => {
+      const knex = getKnex();
+      const ${singularModelName}sFromKnex = await knex("${singularModelName}s");
+      const ${singularModelName}s = ${singularModelName}sFromKnex.map((${singularModelName}: ${modelName}) => ({
+        ...${singularModelName},
+        created_at: ${singularModelName}.created_at?.toISOString(),
+        updated_at: ${singularModelName}.updated_at?.toISOString(),
+      }));
+    
+      return {
+        props: {
+          ${singularModelName}s,
+        },
+      };
+    };
+    
+    export default ${PascalPluralModelName}Page;
+  `
+
+  return viewCode
+}
+
+module.exports = generateIndexPage
+```
+
+It's not pretty code. I wouldn't even argue that its elegant at all, but it does work! I'm sure there are better ways to do this, but I'm not sure what they are yet. I'm sure I'll learn more as I continue to work on this project.
+
+## How do I use it?
+
+Now that you're familiar with next-rails, you might be wondering how to use it. Let's dive in! After installing globally or using `npx next-rails` we can use it to generate a brand new Next.js application with Knex, ES-Lint, Prettier, TailwindCSS, and PostgreSQL already set up for us.
+
+```bash
+next-rails new my-app
+```
+
+Replace "my-app" with whatever you want the app to be called. Behind the scenes this is running the `create-next-app` CLI and then additionally installing and copying over the additional dependencies and files needed to get up and running.
+
+You'll seen an output like this in your terminal when it's done:
+
+```bash
+Creating Next.js app with the following command: npx --no-install create-next-app my-app --ts --eslint --no-app --use-npm --src-dir --import-alias "@deps/*" --tailwind
+✔ Would you like to use experimental `app/` directory with this project? … No / Yes
+Creating a new Next.js app in /home/matt/working/test/my-app.
+
+Using npm.
+
+Initializing project with template: default-tw
+
+Installing dependencies:
+- react
+- react-dom
+- next
+- typescript
+- @types/react
+- @types/node
+- @types/react-dom
+- tailwindcss
+- postcss
+- autoprefixer
+- eslint
+- eslint-config-next
+
+added 352 packages, and audited 353 packages in 6s
+
+Initialized a git repository.
+Success! Created my-app at /home/matt/working/test/my-app
+Copying over the new README...
+Installing additional dependencies...
+Copying over the ESLint configuration...
+Copying over the Prettier configuration...
+Copying over the Knex configuration...
+Creating src/db for knex...
+Creating src/db/migrations for knex...
+Creating src/db/seeds for knex...
+Creating src/db/models for knex...
+Copying over the Knex index.js to src/db/index.js...
+```
+
+Now that the app is created and has all the dependencies that we need installed, we can use the `scaffold` command to generate a new model, migration, api route, and pages for us.
+
+```bash
+next-rails generate scaffold Article name:string email:string password:string
+```
+
+You'll something like this in your terminal:
+
+```bash
+Generating scaffold Article...
+✅ File /home/matt/working/test/my-app/src/db/models/article.ts written successfully
+✅ File /home/matt/working/test/my-app/src/pages/api/articles.ts written successfully
+✅ File /home/matt/working/test/my-app/src/db/migrations/20230530003527_create_articles.js written successfully
+✅ File /home/matt/working/test/my-app/src/pages/articles/index.tsx written successfully
+```
+
+To give you a better understanding of how next-rails works, let's take a look at the code that was generated.
+
+Here's the migration `src/db/migrations/20230530003527_create_articles.js`:
+
+```javascript
+exports.up = function (knex, Promise) {
+  return knex.schema
+    .raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
+    .createTable('articles', function (table) {
+      table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'))
+      table.string('title').notNullable()
+      table.string('author').notNullable()
+      table.timestamp('created_at').defaultTo(knex.fn.now())
+      table.timestamp('updated_at').defaultTo(knex.fn.now())
+    })
+}
+
+exports.down = function (knex, Promise) {
+  return knex.schema.dropTable('articles')
+}
+```
+
+Generation defaults to having a UUID for our primary key and we have `created_at` and `updated_at` timestamps. The nice thing about that is if you agree with this, great! If not, it's easy to go in and change it. These files are meant to be a started point for rapid development, not necessarily the best practice for every situation.
+
+Here's the model `src/db/models/article.ts`:
+
+```typescript
+export interface Article {
+    id: string;
+    title: string;
+    author: string;
+    created_at: Date;
+    updated_at: Date;
+}
+
+export interface ArticleMetadata {
+    id: { label: string; display: (value: string) => string };
+    title: { label: string; display: (value: string) => string };
+    author: { label: string; display: (value: string) => string };
+    created_at: { label: string; display: (value: Date) => string };
+    updated_at: { label: string; display: (value: Date) => string };
+}
+
+export const articleMetadata: ArticleMetadata = {
+    id: { label: 'ID', display: (value: string) => value },
+    title: { label: 'Title', display: (value: string) => value },
+    author: { label: 'Author', display: (value: string) => value },
+    created_at: { label: 'Created At', display: (value: Date) => value?.toLocaleString() || '' },
+    updated_at: { label: 'Updated At', display: (value: Date) => value?.toLocaleString() || '' },
+};
+```
+
+You can import the Typescript interface anywhere in the app that you want to refer to it. The metadata is used to generate the table headers and the data for the index page (and other pages, eventually).
+
+Here's the api route `src/pages/api/articles.ts`:
+
+```typescript
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getKnex } from '@deps/db';
+
+const knex = getKnex();
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const {
+        method,
+        query: { id },
+    } = req;
+
+    switch (method) {
+        case 'GET':
+            if (id) {
+                const instructor = await knex('instructors').where('id', id).first();
+                res.status(200).json(instructor);
+            } else {
+                const instructors = await knex('instructors');
+                res.status(200).json(instructors);
+            }
+            break;
+
+        case 'POST':
+            const newInstructor = req.body;
+            const [insertedInstructor] = await knex('instructors').insert(newInstructor).returning('*');
+            res.status(201).json(insertedInstructor);
+            break;
+
+        case 'PUT':
+        case 'PATCH':
+            if (id) {
+                const updatedInstructor = req.body;
+                const [updatedEntry] = await knex('instructors').where('id', id).update(updatedInstructor).returning('*');
+                res.status(200).json(updatedEntry);
+            } else {
+                res.status(400).json({ message: 'Missing ID' });
+            }
+            break;
+
+        case 'DELETE':
+            if (id) {
+                await knex('instructors').where('id', id).del();
+                res.status(200).json({ message: `Instructor with id ${id} deleted` });
+            } else {
+                res.status(400).json({ message: 'Missing ID' });
+            }
+            break;
+
+        default:
+            res.setHeader('Allow', ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
+            res.status(405).end(`Method ${method} Not Allowed`);
+    }
+}
+```
+
+This I tried to stick as close to the Rails Controller that I could. I have not heavily tested these and some of them are AI generated, so again please if you have any problems file an issue on GitHub.
+
+So there's a few of the files I'm generating automatically when you run the `scaffold` command. Try it out yourself sometime!
+
+```javascript
+const typeMapping = {
+  string: 'string',
+  integer: 'number',
+  boolean: 'boolean',
+  date: 'Date',
+  text: 'string',
+  // TODO: Add other type mappings as needed
+}
+```
+
+These are the supported types for generating a model or scaffold as of today (May 29th, 2023) but I plan on adding more as I go along.
+
+## What's next? (get it?)
+
+The biggest missing feature right now that need to be developed:
+
+- Generating the rest of the pages for the scaffold
+- Making those pages actually look good.
+- Supporting relationships between Models (i.e. belongsTo, hasMany, etc) with foreign keys and "references" similar to how Rails does.
+  `rails generate model Assemblies_parts assembly:references part:references`
+- Supporting more of the Rails CLI
+- Adding configuration options for the package, so you aren't stuck with my defaults. I think they're great but you may not agree and that's just fine.
+
+As always feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/mattgroff/). I'd love to hear your feedback on this project and if you have any ideas for how to make it better.
+
+Thanks for reading!
