@@ -1,0 +1,228 @@
+import { ArticleLayout } from '@/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-05-31',
+  title:
+    'How to store and query your own data using OpenAI Embeddings and Supabase',
+  description:
+    'Learn how to store and query your own data using OpenAI Embeddings and Supabase',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+Inspired by [this article by Supabase on the same topic](https://supabase.com/docs/guides/database/extensions/pgvector)
+
+## What are OpenAI Embeddings?
+
+OpenAI Embeddings are a set of vectors that represent a word or phrase. They are trained on a large corpus of text and are able to represent the meaning of a word or phrase in a vector space. This means that similar words or phrases will have similar vectors. For example, the vectors for "cat" and "dog" will be closer together than the vectors for "cat" and "car".
+
+Vectors are a way of representing data in a multi-dimensional space. For example, a vector with two dimensions can be represented as a point on a graph. A vector with three dimensions can be represented as a point in 3D space. A vector with four dimensions can be represented as a point in 4D space, and so on.
+
+You may have heard of vector artwork, such as an `.svg` file. You can increase and decrease the size without distortion because it's made of math, rather than specific pixels. This is the same idea, but with words and phrases.
+
+In the database, a vector will be stored as an array of numbers like so:
+
+```javascript
+[0.015045881,-0.017935315, ...]
+```
+
+This would repeat way more times depending on how much text you have stored in your database as an embedding.
+
+## Calling the OpenAI API to get Embeddings
+
+So we want a way to store and query text data to OpenAI using these Embeddings in our database. We can do this using the [pgvector extension](https://github.com/pgvector/pgvector/) for Postgres, or by using a specific Vector Database like [pinecone](https://www.pinecone.io/) which markets itself as "Long-term Memory for AI" which is mostly true.
+
+We can turn a blob of text (think like a blog post, article, chapter of a book, section of a book, etc) into an Embeddings (to query store in a Vector DB) using the OpenAI API.
+
+You can check out the specific docs around how this API works [here](https://platform.openai.com/docs/guides/embeddings) but we're using the [`openai` npm package](https://www.npmjs.com/package/openai).
+
+```javascript
+const openai = require('openai-api');
+
+const configuration = new Configuration({
+  apiKey: 'youropenapikeygoeshere',
+});
+
+const openai = new OpenAIApi(configuration);
+
+// Your text goes here.
+const body = `This could be a blog post or anything that you want that is a unit of the things you are trying to index and search for.`;
+
+// This sends the text to the OpenAI API and returns the Embedding.
+const embeddingResponse = await openai.createEmbedding({
+  model: 'text-embedding-ada-002',
+  input: body,
+});
+
+// This is our embedding. We'll store this in our Vector Database.
+const [{ embedding }] = embeddingResponse.data.data
+```
+
+OpenAI will transform our text value into an Embedding. We can then store this in our Vector Database.
+
+## Storing our Embedding in a Vector Database
+
+In my example today we'll be using [Supabase](https://www.npmjs.com/package/@supabase/supabase-js) (Postgres) with the pgvector extension that allows us to store vector files.
+
+We'll create a table called `posts` with a `title` and `body` column. We'll also add a `embedding` column that will store our Embedding.
+
+```sql
+create table posts (
+  id serial primary key,
+  title text not null,
+  body text not null,
+  embedding vector(1536)
+);
+```
+
+Note, the only thing relevant to the embedding is the "body", we aren't sending the title along to the OpenAI API. You can still reference it in your query later if you so choose to.
+
+Now we can store our Embedding in the database.
+
+```javascript
+// code from before
+const [{ embedding }] = embeddingResponse.data.data
+
+// Store the vector in Postgres
+const { data, error } = await supabase.from('posts').insert({
+  title,
+  body,
+  embedding,
+});
+```
+
+You'll want to run this piece of code for every new post that you'd want to store in your database. You can also run this on existing posts if you want to add Embeddings to them, say you had a DB of existing blogs, you can add the embedding vector column and update if you looped over them.
+
+Let's assume you added the rest of the posts than you wanted to add to your database. Now we can query them.
+
+## Querying our Embeddings
+
+In order to "hook up" OpenAI to our embeddings we need to create a function in Postgres find the closest matching values when given a vector.
+
+```sql
+  create or replace function match_posts (
+    query_embedding vector(1536),
+    match_threshold float,
+    match_count int
+  )
+  returns table (
+    id bigint,
+    body text,
+    title text,
+    similarity float
+  )
+  language sql stable
+  as $$
+    select
+      posts.id,
+      posts.body,
+      posts.title,
+      1 - (posts.embedding <=> query_embedding) as similarity
+    from posts
+    where 1 - (posts.embedding <=> query_embedding) > match_threshold
+    order by similarity desc
+    limit match_count;
+  $$;
+```
+
+Additionally we can create an index on our posts table to speed up the query.
+
+```sql
+create index on posts using ivfflat (embedding vector_cosine_ops)
+with
+  (lists = 100);
+```
+
+Now we can query our Embeddings in Supabase using the following code:
+
+```javascript
+const query = `What's cooler than being cool?`;
+
+// OpenAI recommends replacing newlines with spaces for best results
+const input = query.replace(/\n/g, ' ');
+
+// Generate a one-time embedding for the query itself
+const embeddingResponse = await openai.createEmbedding({
+  model: 'text-embedding-ada-002',
+  input,
+});
+
+const [{ embedding }] = embeddingResponse.data.data;
+
+// This is asking supabase to run our function and find the closests 10 matches. You can change the threshold and match as you see fit.
+const response = await supabase.rpc('match_posts', {
+  // match_posts should be the name of the postgres function you created previously)
+  query_embedding: embedding,
+  match_threshold: 0.78, // Choose an appropriate threshold for your data
+  match_count: 10, // Choose the number of matches
+});
+
+// This is the data that we get back from our query.
+const { data: posts } = response;
+
+// 10 Matched Documents found by the request to Supabase that closest match the query.
+console.log(JSON.stringify(posts, null, 2));
+```
+
+- This takes the query "What's cooler than being cool?"
+- Turns it into an embedding with the OpenAI Embedding API. It now looks something like this: [0.0000, 1.0000, ..]
+- Asks Supabase to look for the 10 closests matches (78% match or higher) that are similar to the Embedding we just created.
+- Supabase returns the 10 closests items that match our query, including the `title` `body` `id` and `similarity` (how close the match is to our query).
+
+Now all that's left to do is ask OpenAI one more time, this time for the actual answer to our query "What's cooler than being cool?" using the 10 matches we got back from Supabase for context.
+
+```javascript
+const { data: posts } = response;
+
+// 10 Matched Documents
+console.log(JSON.stringify(posts, null, 2));
+
+// Prompting
+const prompt = `
+You are a very enthusiastic ChatBot who loves to help people! Given the following Posts from this collection, answer the question using only that information, outputted in markdown format. If you are unsure and the answer is not explicitly written in the collection provided, say "Sorry, I don't have that knowledge."
+
+Context Posts:
+${posts}
+
+Question: """
+${query}
+"""
+
+Answer as markdown:
+`;
+
+// This is the answer to our query.
+const completionResponse = await openai.createCompletion({
+  model: 'text-davinci-003',
+  prompt,
+  max_tokens: 512, // Choose the max allowed tokens in completion
+  temperature: 0, // Set to 0 for deterministic results
+});
+
+const {
+  id,
+  choices: [{ text }],
+} = completionResponse.data;
+
+console.log('---');
+console.log('Query Response from OpenAI GPT Completions:');
+console.log(JSON.stringify({ id, text }, null, 2));
+```
+
+And there we have it. To recap everything our query went through:
+
+- This takes the query "What's cooler than being cool?"
+- Turns it into an embedding with the OpenAI Embedding API. It now looks something like this: [0.0000, 1.0000, ..]
+- Asks Supabase to look for the 10 closests matches (78% match or higher) that are similar to the Embedding we just created.
+- Supabase returns the 10 closests items that match our query, including the `title` `body` `id` and `similarity` (how close the match is to our query).
+- We ask OpenAI's Completions API to answer our query using the 10 matches we got back from Supabase as context.
+- OpenAI returns the answer to our query, hopefully with the correct answer.
+
+## Conclusion
+
+This is taking the idea of ChatGPT Chat History to the next level. You can probably see if folks are storing their personal chat history in vector databases to effectively have long-term memory for their AI, they can also store their blog posts, articles, etc. and query them using the same method.
+
+I hope this was helpful and you can see the power of OpenAI Embeddings and Supabase together. You can just as easily apply this to any other Vector Database like Pinecone, etc.
+
+What do you think of Embeddings and Vector Databases? Let me know on [LinkedIn](https://www.linkedin.com/in/mattgroff/).
