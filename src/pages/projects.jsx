@@ -1,12 +1,12 @@
 import Head from 'next/head'
 import Image from 'next/image'
-
-import { Card } from '@/components/Card'
-import { SimpleLayout } from '@/components/SimpleLayout'
-import logoHome from '@/images/logos/home.svg'
-import logoBun from '@/images/logos/bun.svg'
-import logoRuby from '@/images/logos/ruby.svg'
-import logoParty from '@/images/logos/party.png'
+import { useEffect } from 'react'
+import { Card } from 'src/components/Card'
+import { SimpleLayout } from 'src/components/SimpleLayout'
+import logoHome from 'src/images/logos/home.svg'
+import logoBun from 'src/images/logos/bun.svg'
+import logoRuby from 'src/images/logos/ruby.svg'
+import logoParty from 'src/images/logos/party.png'
 
 const projects = [
   {
@@ -62,6 +62,19 @@ function LinkIcon(props) {
 }
 
 export default function Projects() {
+  useEffect(() => {
+    fetch('/api/page-view', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'Projects Page',
+        referrer: document.referrer,
+      }),
+    })
+  }, [])
+
   return (
     <>
       <Head>

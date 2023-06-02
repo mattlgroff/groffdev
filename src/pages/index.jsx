@@ -1,19 +1,17 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
-import { Container } from '@/components/Container'
-import {
-  GitHubIcon,
-  LinkedInIcon,
-} from '@/components/SocialIcons'
-import { formatDate } from '@/lib/formatDate'
-import { generateRssFeed } from '@/lib/generateRssFeed'
-import { getAllArticles } from '@/lib/getAllArticles'
-import logoUmbrage from '@/images/logos/umbrage.svg'
-import logoAccenture from '@/images/logos/accenture.svg'
-import logoBatakang from '@/images/logos/batakang.webp'
+import { Button } from 'src/components/Button'
+import { Card } from 'src/components/Card'
+import { Container } from 'src/components/Container'
+import { GitHubIcon, LinkedInIcon } from 'src/components/SocialIcons'
+import { formatDate } from 'src/lib/formatDate'
+import { generateRssFeed } from 'src/lib/generateRssFeed'
+import { getAllArticles } from 'src/lib/getAllArticles'
+import logoUmbrage from 'src/images/logos/umbrage.svg'
+import logoAccenture from 'src/images/logos/accenture.svg'
+import logoBatakang from 'src/images/logos/batakang.webp'
+import { useEffect } from 'react'
 
 function BriefcaseIcon(props) {
   return (
@@ -54,9 +52,7 @@ function ArrowDownIcon(props) {
 function Article({ article }) {
   return (
     <Card as="article">
-      <Card.Title href={`/blog/${article.slug}`}>
-        {article.title}
-      </Card.Title>
+      <Card.Title href={`/blog/${article.slug}`}>{article.title}</Card.Title>
       <Card.Eyebrow as="time" dateTime={article.date} decorate>
         {formatDate(article.date)}
       </Card.Eyebrow>
@@ -73,7 +69,6 @@ function SocialLink({ icon: Icon, ...props }) {
     </Link>
   )
 }
-
 
 function Resume() {
   const resume = [
@@ -105,6 +100,19 @@ function Resume() {
       end: '2018',
     },
   ]
+
+  const incrementResumePageView = async () => {
+    await fetch('/api/page-view', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'Resume',
+        referrer: document.referrer,
+      }),
+    })
+  }
 
   return (
     <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
@@ -146,7 +154,13 @@ function Resume() {
           </li>
         ))}
       </ol>
-      <Button href="/resume.pdf" download={true} variant="secondary" className="group mt-6 w-full">
+      <Button
+        href="/resume.pdf"
+        download={true}
+        variant="secondary"
+        className="group mt-6 w-full"
+        onDownload={incrementResumePageView}
+      >
         Download CV
         <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
       </Button>
@@ -154,14 +168,24 @@ function Resume() {
   )
 }
 
-
 export default function Home({ articles }) {
+  useEffect(() => {
+    fetch('/api/page-view', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'Home Page',
+        referrer: document.referrer,
+      }),
+    })
+  }, [])
+
   return (
     <>
       <Head>
-        <title>
-          Matthew Groff - Software engineer, husband, and dog dad
-        </title>
+        <title>Matthew Groff - Software engineer, husband, and dog dad</title>
         <meta
           name="description"
           content="I'm Matthew Groff, a software engineer based in Orlando, FL. 
@@ -174,11 +198,13 @@ export default function Home({ articles }) {
             Software engineer, husband, and dog dad.
           </h1>
           <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
-          I&apos;m Matthew Groff, a software engineer based in Orlando, FL. 
-          I work remotely, focusing on developing applications and crafting solutions for different industries. 
-          When I&apos;m not working I enjoy spending time with my wife and dog, playing video games, and visiting the local Orlando attractions.
-          My posts and opinions are my personal views and not those of my employer. 
-          Bain & Company does not endorse any content or opinions shared on this account.
+            I&apos;m Matthew Groff, a software engineer based in Orlando, FL. I
+            work remotely, focusing on developing applications and crafting
+            solutions for different industries. When I&apos;m not working I
+            enjoy spending time with my wife and dog, playing video games, and
+            visiting the local Orlando attractions. My posts and opinions are my
+            personal views and not those of my employer. Bain & Company does not
+            endorse any content or opinions shared on this account.
           </p>
           <div className="mt-6 flex gap-6">
             <SocialLink

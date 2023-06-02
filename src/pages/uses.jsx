@@ -1,7 +1,8 @@
 import Head from 'next/head'
-import { Card } from '@/components/Card'
-import { Section } from '@/components/Section'
-import { SimpleLayout } from '@/components/SimpleLayout'
+import { Card } from 'src/components/Card'
+import { Section } from 'src/components/Section'
+import { SimpleLayout } from 'src/components/SimpleLayout'
+import { useEffect } from 'react'
 
 function ToolsSection({ children, ...props }) {
   return (
@@ -25,11 +26,25 @@ function Tool({ title, href, children }) {
 }
 
 export default function Uses() {
+  useEffect(() => {
+    fetch('/api/page-view', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: 'Uses Page',
+        referrer: document.referrer,
+      }),
+    })
+  }, [])
+
   const technologies = [
     {
       title: 'Apollo Server',
       href: 'https://www.apollographql.com/',
-      description: "Apollo is a well documented GraphQL Server with a great community. They offer free certifications and training. I earned the Graph Developer Professional certification in January 2023 and the Graph Developer Associate certificate in May 2022.",
+      description:
+        'Apollo is a well documented GraphQL Server with a great community. They offer free certifications and training. I earned the Graph Developer Professional certification in January 2023 and the Graph Developer Associate certificate in May 2022.',
     },
     {
       title: 'Bun',
@@ -37,14 +52,15 @@ export default function Uses() {
       description:
         "A faster alternative to Node.js that's built upon JavaScriptCore 'the performance-minded JS engine built for Safari.'",
     },
-    { 
+    {
       title: 'JavaScript',
-      description: "Love it or hate it we use JS everyday."
+      description: 'Love it or hate it we use JS everyday.',
     },
     {
       title: 'GraphQL',
       href: 'https://graphql.org/',
-      description: "Describe your data. Ask for what you want. Get predictable results."
+      description:
+        'Describe your data. Ask for what you want. Get predictable results.',
     },
     {
       title: 'Next.js',
@@ -56,7 +72,7 @@ export default function Uses() {
       title: 'Node.js',
       href: 'https://nodejs.org/',
       description:
-        "I have been working with Node.js since 2017 and I use it every single day in some capacity.",
+        'I have been working with Node.js since 2017 and I use it every single day in some capacity.',
     },
     {
       title: 'PostgreSQL',
@@ -80,7 +96,7 @@ export default function Uses() {
       title: 'Ruby on Rails',
       href: 'https://rubyonrails.org/',
       description:
-        "I have be been working with Rails since 2023 and primarily use it for rapid API development.",
+        'I have be been working with Rails since 2023 and primarily use it for rapid API development.',
     },
     {
       title: 'Tailwind CSS',
