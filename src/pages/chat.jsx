@@ -6,17 +6,18 @@ import { Button } from 'src/components/Button'
 export default function Chat() {
   const [messages, setMessages] = useState([])
   const [query, setQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const sendMessage = async (event) => {
-    event.preventDefault() // prevent the form from submitting traditionally
+    event.preventDefault()
 
-    // Add the user's question to the messages immediately
     setMessages((prevMessages) => [
       ...prevMessages,
       { text: query, sender: 'user' },
     ])
 
-    setQuery('') // clear the input field
+    setQuery('')
+    setIsLoading(true) // start loading
 
     try {
       const response = await fetch('/api/query', {
@@ -28,10 +29,10 @@ export default function Chat() {
       })
       const data = await response.json()
 
-      if (data.error) {
+      if (data.error || data.errorMessage) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { text: data.error, sender: 'bot' },
+          { text: data.error || data.errorMessage, sender: 'bot' },
         ])
       } else {
         setMessages((prevMessages) => [
@@ -39,21 +40,23 @@ export default function Chat() {
           { text: data.text, sender: 'bot' },
         ])
       }
-
     } catch (error) {
       setMessages((prevMessages) => [
         ...prevMessages,
-        { text: 'Sorry, there was an issue with your request. Please try again.', sender: 'bot' },
+        {
+          text: 'Sorry, there was an issue with your request. Please try again.',
+          sender: 'bot',
+        },
       ])
     }
 
-    setQuery('')
+    setIsLoading(false) // end loading
   }
 
   return (
     <>
       <Head>
-        <title>Chat with GroffDev ChatBot</title>
+        <title>GroffDev ChatBot</title>
         <meta name="description" content="Chat with GroffDev's ChatBot." />
       </Head>
       <SimpleLayout
@@ -77,9 +80,10 @@ export default function Chat() {
               className="mr-4 flex-grow rounded-md border border-zinc-500/20 p-2 dark:border-zinc-800/50 dark:bg-zinc-800 dark:text-zinc-100"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              disabled={isLoading}
             />
-            <Button type="submit" className="group w-20">
-              Send
+            <Button type="submit" className="group w-20" disabled={isLoading}>
+              {isLoading ? 'Loading...' : 'Send'}
             </Button>
           </form>
         </div>
