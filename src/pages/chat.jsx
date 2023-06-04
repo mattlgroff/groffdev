@@ -1,27 +1,37 @@
-import Head from 'next/head'
-import { useState } from 'react'
-import { SimpleLayout } from 'src/components/SimpleLayout'
-import { Button } from 'src/components/Button'
+import Head from 'next/head';
+import { useState, useRef, useEffect } from 'react';
+import { SimpleLayout } from 'src/components/SimpleLayout';
+import { Button } from 'src/components/Button';
 
 export default function Chat() {
-  const [messages, setMessages] = useState([])
-  const [query, setQuery] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [messages, setMessages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+    // Add this line to create a reference to the input
+    const inputRef = useRef();
+
+    useEffect(() => {
+      // Automatically focus the input when the component renders
+      inputRef.current.focus();
+    }, [messages, isLoading]);
 
   const sendMessage = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
 
+    // Get the last 5 messages sent by the user
     const previousMessages = messages
       .filter((message) => message.sender === 'user')
       .map((message) => message.text)
+      .slice(-5);
 
     setMessages((prevMessages) => [
       ...prevMessages,
       { text: query, sender: 'user' },
-    ])
+    ]);
 
-    setQuery('')
-    setIsLoading(true) // start loading
+    setQuery('');
+    setIsLoading(true); // start loading
 
     try {
       const response = await fetch('/api/query', {
@@ -30,19 +40,19 @@ export default function Chat() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query, previousMessages }),
-      })
-      const data = await response.json()
+      });
+      const data = await response.json();
 
       if (data.error || data.errorMessage) {
         setMessages((prevMessages) => [
           ...prevMessages,
           { text: data.error || data.errorMessage, sender: 'bot' },
-        ])
+        ]);
       } else {
         setMessages((prevMessages) => [
           ...prevMessages,
           { text: data.text, sender: 'bot' },
-        ])
+        ]);
       }
     } catch (error) {
       setMessages((prevMessages) => [
@@ -51,11 +61,11 @@ export default function Chat() {
           text: 'Sorry, there was an issue with your request. Please try again.',
           sender: 'bot',
         },
-      ])
+      ]);
     }
 
-    setIsLoading(false) // end loading
-  }
+    setIsLoading(false); // end loading
+  };
 
   return (
     <>
@@ -84,7 +94,7 @@ export default function Chat() {
               className="mr-4 flex-grow rounded-md border border-zinc-500/20 p-2 dark:border-zinc-800/50 dark:bg-zinc-800 dark:text-zinc-100"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              disabled={isLoading}
+              ref={inputRef}
             />
             <Button type="submit" className="group w-20" disabled={isLoading}>
               {isLoading ? 'Loading...' : 'Send'}
@@ -93,5 +103,5 @@ export default function Chat() {
         </div>
       </SimpleLayout>
     </>
-  )
+  );
 }
