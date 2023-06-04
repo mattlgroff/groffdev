@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   try {
     // Check if the query is missing
-    const { query } = req.body
+    const { query, previousMessages } = req.body
     if (!query) {
       res.status(400).json({ error: 'Missing query' })
       return
@@ -37,18 +37,26 @@ export default async function handler(req, res) {
     // Crafting the prompt for our completions response
     let sectionsText = ''
     for (const section of sections) {
-      sectionsText += `\n### ${section.document_title} - ${section.section_title}\n${section.body}\n`
+      sectionsText += `\nSource: ${section.document_title} Pages: ${section.section_title}\n${section.body}\n`
+    }
+
+    let previousQuestionsText = ''
+    for (const message of previousMessages) {
+      previousQuestionsText += `\nPrevious Question: ${message}`
     }
 
     const prompt = `
           You are a friendly and knowledgeable GroffDev chatbot, trained to provide accurate answers using the information found on GroffDev, the personal website and blog of Matthew Groff. Given the following pages from the site, answer the question using only that information. Please answer in a conversational and factual manner, including the relevant information from the pages provided. If the answer is not explicitly written in GroffDev, say "Sorry, that's outside the scope of GroffDev."
     
-          Context sections:
+          Context Pages:
           ${sectionsText}
         
           Question: """
           ${query}
           """
+
+          Previously asked questions: """
+          ${previousQuestionsText}
         
           Response:
         `

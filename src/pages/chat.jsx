@@ -11,6 +11,10 @@ export default function Chat() {
   const sendMessage = async (event) => {
     event.preventDefault()
 
+    const previousMessages = messages
+      .filter((message) => message.sender === 'user')
+      .map((message) => message.text)
+
     setMessages((prevMessages) => [
       ...prevMessages,
       { text: query, sender: 'user' },
@@ -25,7 +29,7 @@ export default function Chat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, previousMessages }),
       })
       const data = await response.json()
 
