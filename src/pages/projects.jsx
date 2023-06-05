@@ -7,6 +7,7 @@ import logoHome from 'src/images/logos/home.svg'
 import logoBun from 'src/images/logos/bun.svg'
 import logoRuby from 'src/images/logos/ruby.svg'
 import logoParty from 'src/images/logos/party.png'
+import logoPython from 'src/images/logos/python.svg'
 
 const projects = [
   {
@@ -17,6 +18,15 @@ const projects = [
       label: 'estimationparty.com',
     },
     logo: logoParty,
+  },
+  {
+    name: 'Repo Inspector',
+    description: "ChatGPT Plugin written in Python: Inspect Git Repositories. Submit a GitHub, Gitlab, etc., HTTPS link. The repo gets cloned and reviewed using by Repo Inspector.",
+    link: {
+      href: 'https://github.com/mattlgroff/repo-inspector',
+      label: 'github.com/mattlgroff/repo-inspector',
+    },
+    logo: logoPython,
   },
   {
     name: 'Ask CLI',
