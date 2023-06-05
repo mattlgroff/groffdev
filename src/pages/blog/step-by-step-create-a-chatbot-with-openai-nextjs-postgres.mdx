@@ -67,6 +67,13 @@ OPENAI_API_KEY=your-openai-api-key-from-step-1
 DATABASE_URL=your-postgres-connection-string-from-step-2
 ```
 
+NOTE: Very important for neon you need to add `?sslmode=require` to the end of your DATABASE_URL. So it should look like this:
+
+```bash
+OPENAI_API_KEY=your-openai-api-key-from-step-1
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres?sslmode=require
+```
+
 ## Step 5: Enable PgVector in your PostgreSQL Database and Create a Table to Store your Data
 
 On Neon, and in the default PostgreSQL setups if you want to enable `pgvector` you have to run a SQL command:
