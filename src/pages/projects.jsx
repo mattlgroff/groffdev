@@ -8,6 +8,7 @@ import logoBun from 'src/images/logos/bun.svg'
 import logoRuby from 'src/images/logos/ruby.svg'
 import logoParty from 'src/images/logos/party.png'
 import logoPython from 'src/images/logos/python.svg'
+import logoNpm from 'src/images/logos/npm.svg'
 
 const projects = [
   {
@@ -18,6 +19,15 @@ const projects = [
       label: 'estimationparty.com',
     },
     logo: logoParty,
+  },
+  {
+    name: 'NPM Package: next-rails',
+    description: "A CLI for generating a Next.js app with Rails CLI-like features. Utilizes Create Next App and Knex and custom code generation to quickly scaffold a full-stack Next.js project the Rails way.",
+    link: {
+      href: 'https://www.npmjs.com/package/next-rails',
+      label: 'npmjs.com/package/next-rails',
+    },
+    logo: logoNpm,
   },
   {
     name: 'Repo Inspector',
