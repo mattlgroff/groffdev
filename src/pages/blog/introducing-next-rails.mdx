@@ -1,0 +1,81 @@
+import { ArticleLayout } from 'src/components/ArticleLayout';
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-06-09',
+  title: 'Introducing Next-Rails CLI',
+  description:
+    'I made an npm package called next-rails that gives the power and syntax of the Rails CLI to Next.js applications.',
+  slug: 'introducing-next-rails',
+};
+
+export default (props) => <ArticleLayout meta={meta} {...props} />;
+
+
+You can find [next-rails on npm](https://www.npmjs.com/package/next-rails)
+
+You can find the source code in my [github repo](https://github.com/mattlgroff/next-rails)
+
+<div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
+  <iframe
+    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+    src="https://www.youtube.com/embed/t0VIXmnk3GQ"
+    frameBorder="0"
+    allow="autoplay; encrypted-media"
+    allowFullScreen
+  />
+</div>
+
+In case the embed doesn't work here is a link to my [youtube video introducing next-rails](https://www.youtube.com/watch?v=t0VIXmnk3GQ)
+
+## What is next-rails?
+I fell in love with the migration/seed/scaffolding features of the Ruby on Rails CLI.
+
+I wanted to bring that power and syntax to Next.js applications.
+
+So I did.
+
+## How do I use it?
+You can use it with npx or install it globally.
+
+```bash
+npx next-rails new my-app
+```
+
+This will create a brand new Next.js application using `create-next-app` and then install a bunch of "extras" on top.
+
+Some of the extras include:
+* typescript
+* eslint
+* prettier
+* tailwindcss
+* `shadcn` compatibility
+* postgresql support
+* a fork of `knex` for migrations and seeds and query building
+* Dockerfiles for development, with a `docker-compose.yml` to instantly spin up a Next.js development environment with postgresql (including PGVector support!)
+
+After you've created your app is where the fun really begins. You can use the `next-rails` CLI to scaffold out a full-stack CRUD (Create Read Update Delete) application with:
+* Database Migrations (src/db/migrations)
+* API Routes (src/pages/api/yourmodel)
+* Page Routes (src/pages/yourmodel)
+* Model - TypeScript interface (src/db/models/yourmodel)
+
+Just like in Rails, your model name should be PascalCase and singular. The CLI will automatically pluralize it for you, the same way that Rails does.
+
+```bash
+# From the 'my-app' directory
+npx next-rails generate scaffold User name:string age:integer
+
+# You can use g for short
+npx next-rails g scaffold Todo title:string completed:boolean user:references
+
+# Migrate your changes to the database
+npx next-rails db:migrate
+```
+
+## What's next?
+For now I'm going to keep using this in my own projects and see how it goes. I'm sure there are bugs and I'm sure there are features that I haven't thought of yet. Please file an issue on GitHub with feature requests or bug reports. Also definitely contribute if you know how! I don't pay as much attention to making the front-end as pretty as I'd like, but the bones are there for someone to contribute to the page templates and make the apps scaffolded with `next-rails` to look gorgerous too.
+
+That's all for now! Thanks for reading and I hope you enjoy using `next-rails` as much as I do!
+
+If you found this post helpful, feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/mattgroff/). Please let me know if you have any questions or feedback!
