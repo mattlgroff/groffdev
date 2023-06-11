@@ -19,11 +19,16 @@ export default function Chat() {
   const sendMessage = async (event) => {
     event.preventDefault();
 
-    // Get the last 5 messages sent by the user
-    const previousMessages = messages
+    // Get the previous messages sent by the user
+    const previousUserMessages = messages
       .filter((message) => message.sender === 'user')
+      .map((message) => message.text);
+
+    // Get the last system message, if one exists.
+    const lastSystemMessage = messages
+      .filter((message) => message.sender === 'bot')
       .map((message) => message.text)
-      .slice(-5);
+      .pop();
 
     setMessages((prevMessages) => [
       ...prevMessages,
@@ -39,7 +44,7 @@ export default function Chat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query, previousMessages }),
+        body: JSON.stringify({ query, previousUserMessages, lastSystemMessage }),
       });
       const data = await response.json();
 

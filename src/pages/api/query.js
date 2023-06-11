@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
   try {
     // Check if the query is missing
-    const { query, previousMessages } = req.body;
+    const { query, previousUserMessages, lastSystemMessage } = req.body;
     if (!query) {
       res.status(400).json({ error: 'Missing query' });
       return;
@@ -40,12 +40,8 @@ export default async function handler(req, res) {
     // Crafting the prompt for our completions response
     let sectionsText = '';
     for (const section of sections) {
-      sectionsText += `\nSource: ${section.document_title} Pages: ${section.section_title}\n${section.body}\n`;
-    }
-
-    let previousQuestionsText = '';
-    for (const message of previousMessages) {
-      previousQuestionsText += `\nPrevious Question: ${message}`;
+      let sectionBody = section.body.substring(0, 1000);
+      sectionsText += `\nSource: ${section.document_title} Pages: ${section.section_title}\n${sectionBody}\n`;
     }
 
     let systemMessage = `
@@ -53,9 +49,6 @@ export default async function handler(req, res) {
     
       Context Pages:
       ${sectionsText}
-        
-      Previously asked questions: """
-      ${previousQuestionsText}
     `;
 
     const userMessage = `Question: "${query}"`;
@@ -86,19 +79,15 @@ export default async function handler(req, res) {
         reservedTokensForResponse;
     }
 
+    // Create the messages array
+    const messages = createMessagesArray(query, sectionsText, previousUserMessages, lastSystemMessage);
+    console.log('messages', messages);
+    
+
     // Now we can pass our messages to the gpt-3.5-turbo model to get our completion (result)
     const chatResponse = await openai.createChatCompletion({
       model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: systemMessage,
-        },
-        {
-          role: 'user',
-          content: userMessage,
-        },
-      ],
+      messages,
       max_tokens: reservedTokensForResponse,
       temperature: 0.2,
     });
@@ -140,4 +129,42 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'An unknown error occurred.' });
     }
   }
+}
+
+function createMessagesArray(query, sectionsText, previousUserMessages, lastSystemMessage) {
+  // Initial array with system message and user's query
+  let messagesArray = [
+    {
+      role: 'system',
+      content: `
+        You are a friendly and knowledgeable GroffDev chatbot, trained to provide accurate answers using the information found on GroffDev, the personal website and blog of Matthew Groff. Given the following pages from the site, answer the question using only that information. Please answer in a conversational and factual manner, including the relevant information from the pages provided. If the answer is not explicitly written in GroffDev, say "Sorry, that's outside the scope of GroffDev."
+    
+        Context Pages:
+        ${sectionsText}
+      `,
+    },
+  ];
+
+  // Add previous user messages to the array
+  messagesArray = messagesArray.concat(previousUserMessages.map((message) => ({
+    role: 'user',
+    content: message,
+  })));
+
+  // If last system message exists, add it to the array
+  if (lastSystemMessage) {
+    messagesArray.push({
+      role: 'system',
+      content: lastSystemMessage,
+    });
+  }
+
+  messagesArray.push(
+    {
+      role: 'user',
+      content: `Question: "${query}"`,
+    },
+  );
+
+  return messagesArray;
 }
