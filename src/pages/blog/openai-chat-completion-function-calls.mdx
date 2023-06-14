@@ -1,0 +1,155 @@
+import { ArticleLayout } from 'src/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-06-13',
+  title: 'OpenAI Chat Completion\'s API Function Calling - JavaScript Example',
+  description: 'A code example of how to use the new Chat Completion Function Calling API with JavaScript (Bun and Express)',
+  slug: 'openai-chat-completion-function-calls',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+The Chat Completion Function Calling is a new and exciting feature in the OpenAI API that enables developers to have more control over the flow of chat-based applications. This functionality offers a way for developers to describe and define functions that the language model can decide to "call" in response to a given user query. This allows you to extract structured data from the model's output, which can then be used in various ways in your application.
+
+As an example, you can build chatbots that answer queries by calling external APIs. Functions like get_current_weather(location: string, unit: 'celsius' | 'fahrenheit') could be called upon to fetch the weather information for a specific location. This means that you can convert natural language into API calls, which can be hugely beneficial for creating intuitive and user-friendly interfaces.
+
+Imagine being able to simply ask "Who are my top customers?" and having the chatbot convert this to a function call like get_customers(min_revenue: int, created_before: string, limit: int) that interacts with your internal API.
+
+Or perhaps you need to extract specific structured data from a block of text. This could be achieved by defining a function like extract_data(name: string, birthday: string), or sql_query(query: string). The possibilities are extensive and can greatly enhance the capabilities of your applications.
+
+However, it's important to remember that while the model generates the JSON for the function call, it does not actually call the function itself. That step is up to your code. You'll need to parse the generated JSON into arguments for your function, then call the function, and handle the result in whatever way is appropriate for your application.
+
+While this functionality is indeed powerful, it does also come with potential risks. It's advised to build user confirmation flows before executing any actions that could impact the world on behalf of users. This includes things like sending an email, making a purchase, or posting something online. This way, you can ensure that any function calls being made are in line with the user's intentions.
+
+Let's jump right into our JavaScript code example that leverages OpenAI's Chat Completion Function Calling.
+
+## Example
+Our example demonstrates how to use the new feature with a server powered by Bun and Express. The server defines two example functions: get_current_weather and get_movie_info. The get_current_weather function returns a hardcoded response about the current weather in a specified location, while get_movie_info fetches information about a specified movie from the OMDB API.
+
+In order to enable the OpenAI model to use these functions, we explain them in the functionDefinitions object. This includes the function name, a description, and an object that outlines the parameters the function accepts.
+
+Here's the code snippet that shows how we define the functions and explain them to OpenAI:
+
+```javascript
+// Define the functions
+const functions = {
+  get_current_weather: (location, unit = "fahrenheit") => {
+    return "The current weather in " + location + " is 72 degrees and sunny.";
+  },
+  get_movie_info: async (title, type = 'movie', year, plot = 'short') => {
+    // Implementation details omitted for brevity
+  },
+  // Add your own functions here
+};
+
+// Explain the functions to OpenAI
+const functionDefinitions = [
+  {
+    "name": "get_current_weather",
+    "description": "Get the current weather and temperature in a given location",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "The city and state, e.g. San Francisco, CA",
+        },
+        "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+      },
+      "required": ["location"],
+    },
+  },
+  {
+    "name": "get_movie_info",
+    "description": "Get the information about a movie",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the movie"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["movie", "series", "episode"],
+        },
+        "year": {
+          "type": "string",
+          "description": "The year of release",
+        },
+        "plot": {
+          "type": "string",
+          "enum": ["short", "full"],
+        },
+      },
+      "required": ["title"],
+    },
+  }
+];
+```
+
+Now, when the OpenAI model's response includes a function call, our server executes the function with the specified parameters. The function call and result are then added to the messages and a new request is sent to the OpenAI API.
+
+Here's the especially new pieces of the code, `processChatCompletion` and `processFunctionCall`:
+
+```javascript
+// Function to process the OpenAI chat completion
+async function processChatCompletion(query) {
+  return await openai.createChatCompletion({
+    model: "gpt-3.5-turbo-0613",
+    messages: [{"role": "user", "content": query}],
+    functions: functionDefinitions,
+    function_call: "auto",
+  });
+}
+
+// Function to process the function call
+async function processFunctionCall(res, query, messages) {
+  const lastMessage = messages[messages.length - 1];
+  const functionName = lastMessage.function_call.name;
+  const args = JSON.parse(lastMessage.function_call.arguments);
+
+  console.log('\nCalling function', functionName, args)
+
+  if(functions[functionName]) {
+    const argsArray = Object.keys(args).map(key => args[key]);
+    const functionResult = await functions[functionName](...argsArray);
+
+    // Add the function call and function result to the messages array
+    messages.push({
+      "role": "function",
+      name: functionName,
+      "content": JSON.stringify(functionResult),
+    });
+
+    const chatCompletion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo-0613",
+      messages: messages,
+      functions: functionDefinitions,
+      function_call: "auto",
+    });
+
+    const newMessage = chatCompletion.data.choices[0].message;
+
+    if (newMessage.function_call) {
+      // If there's another function call, process it recursively
+      return await processFunctionCall(res, query, [...messages, newMessage]);
+    } else {
+      // If there's no more function call, return the message
+      return newMessage;
+    }
+  } else {
+    throw new Error(`Function ${functionName} is not defined.`);
+  }
+}
+```
+
+To run the example code, you'll [need Bun installed](https://bun.sh/). You'll also need to set two environment variables with a `.env`, OPENAI_API_KEY and OMDB_API_KEY, which are your API keys for OpenAI and OMDB, respectively. Once you have everything set up, simply use `bun install` and `bun start` to install dependencies and start the server.
+
+You can find [the full code example at my GitHub Repository](https://github.com/mattlgroff/openai-chat-completion-functions-example).
+
+## Conclusion
+Just like ChatGPT Plugins, this is giving powerful tools to OpenAI's GPT3/4 API to let their models make function calls on your behalf. It's a fun way to translate a human requests in one or many different function calls to get real data. I'm excited to see what people build with this new feature. Plugins are powerful, but end users aren't going to a Plugin Store and using ChatGPT outside of our applications to search for things or ask questions. They are doing it in the apps we build. This is a great way to have the best of both worlds.
+
+As always feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/mattgroff/). I'd love to hear your feedback and thoughts.
