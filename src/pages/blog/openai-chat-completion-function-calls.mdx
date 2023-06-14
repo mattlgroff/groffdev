@@ -145,11 +145,43 @@ async function processFunctionCall(res, query, messages) {
 }
 ```
 
+## Sending a Query
+To send a query to the server, you can use a tool like curl or Postman. Send a POST request to http://localhost:3000/query with a JSON body like this:
+
+```json
+{
+    "query": "Where city did the movie Forrest Gump start in? What is the weather and temperature there?"
+}
+```
+
+The response should look something like this:
+
+```json
+{
+    "message": "The movie Forrest Gump started in the state of Alabama. The current weather in Alabama is 72 degrees and sunny."
+}
+```
+
+In the console you can see the function calls happening and the arguments being used:
+```
+Question: Where city did the movie Forrest Gump start in? What is the weather and temperature there?
+
+Calling function get_movie_info {
+  title: "Forrest Gump"
+}
+
+Calling function get_current_weather {
+  location: "Greenbow, AL"
+}
+
+Answer: The movie "Forrest Gump" starts in the city of Greenbow, Alabama. The current weather in Greenbow, AL is 72 degrees and sunny.
+```
+
+## Conclusion
 To run the example code, you'll [need Bun installed](https://bun.sh/). You'll also need to set two environment variables with a `.env`, OPENAI_API_KEY and OMDB_API_KEY, which are your API keys for OpenAI and OMDB, respectively. Once you have everything set up, simply use `bun install` and `bun start` to install dependencies and start the server.
 
 You can find [the full code example at my GitHub Repository](https://github.com/mattlgroff/openai-chat-completion-functions-example).
 
-## Conclusion
 Just like ChatGPT Plugins, this is giving powerful tools to OpenAI's GPT3/4 API to let their models make function calls on your behalf. It's a fun way to translate a human requests in one or many different function calls to get real data. I'm excited to see what people build with this new feature. Plugins are powerful, but end users aren't going to a Plugin Store and using ChatGPT outside of our applications to search for things or ask questions. They are doing it in the apps we build. This is a great way to have the best of both worlds.
 
 As always feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/mattgroff/). I'd love to hear your feedback and thoughts.
