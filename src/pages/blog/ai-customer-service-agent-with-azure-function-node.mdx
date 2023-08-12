@@ -1,0 +1,63 @@
+import { ArticleLayout } from 'src/components/ArticleLayout';
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-08-12',
+  title:
+    'Crafting an Email-based AI Customer Service System Using Azure Functions & GPT-4',
+  description:
+    "Explore how the synergy of Azure Functions, Node.js, and OpenAI's GPT-4 can revolutionize email customer support. Dive into the step-by-step process of building a responsive AI Customer Service Agent.",
+  slug: 'ai-customer-service-agent-with-azure-function-node',
+};
+
+export default (props) => <ArticleLayout meta={meta} {...props} />;
+
+Here's how I combined Azure Functions, Node.js, and OpenAI's GPT-4 to craft an efficient email-based AI Customer Service Agent.
+
+[GitHub Repo](https://github.com/mattlgroff/azure-customer-service-ai)
+
+![Example AI Customer Service Agent](/images/photos/AiCustomerServiceAgent.png)
+
+# How Does It Work?
+
+This Node-based Azure Functions solution focuses on receiving a customer's email, processing it, and then employing OpenAI's GPT-4 to generate an apt response. The response is then dispatched back to the customer using Sendgrid.
+
+# But Why ChatCompletion API for Emails?
+
+why is the project utilizes the ChatCompletion API when it's primarily not a chat system? The answer lies in OpenAI's Function Calling feature. GPT models, especially GPT-4, excel at orchestrating well-documented processes. In this project, the "sendEmail" function, with a clear definition of subject and body arguments, empowers GPT-4 to generate responses that are almost certain to be valid emails. While there's always room for improvement, a well-defined function minimizes errors.
+
+# Overcoming Challenges
+
+Every project has its hurdles. One of the challenges faced was handling newline /n characters. The initial approach resulted in generating invalid JSON for the "text" argument. However, by explicitly defining the use of newline characters, the issue was rectified.
+
+# Make this project real
+
+The potential to transform this prototype into a full-blown product is immense. Here's the roadmap:
+
+*Integration with an Office 365 email inbox for direct customer emails.
+*Incorporation of Azure Logic App to activate the Azure Function upon email receipt.
+*Retrieving the last ten emails from a customer via Office 365's get_email_history to refine response quality.
+*Establishing a Vector Database to maintain and search Frequently Asked Questions, further enhancing response precision.
+
+# How did you set this up in Azure?
+
+1. Azure Account and Credits:
+- Signed up for a free-tier Azure Account.
+- Benefited from $200 worth of free credits, allowing me to experiment and deploy without immediate costs.
+
+2. Resource Group (`customer-service`):
+- Think of a Resource Group as a container holding related resources for an Azure solution.
+- I created a Resource Group named `customer-service` to manage and organize the various components of my project.
+
+3. App Service Plan (`ASP-customerservice-b6bb`):
+- An App Service Plan defines the region (Datacenter) of the physical server where your web app will be hosted and determines the amount of resources for your app. I used `us-east`
+- I set up an App Service Plan named `ASP-customerservice-b6bb` (they came up with the name not me), which essentially defines the hardware context where the Azure Function runs.
+
+4. Azure Function (`NewEmailReceived`):
+- This is where the "magic" happens. I created an Azure Function named `NewEmailReceived` to handle the email processing and response generation. The configuration settings handle all of the environment variables or as Azure calls them "Application Settings".
+
+5. Storage Account (`customerserviceaistorage`):
+- The Azure Function required storage, especially for deployment. When deploying through GitHub Actions, the function is bundled as a ZIP file and then uploaded to Azure.
+- I set up a storage account named `customerserviceaistorage` to cater to this need. This storage account also contains specific containers like azure-webjobs-hosts and scm-releases to support the Azure Function's operations and deployment.
+
+In essence, these components formed the backbone of my project on Azure. By seamlessly integrating them, I was able to construct a robust infrastructure that efficiently supports the AI Customer Service Agent's functionalities. If you're diving into Azure for a similar project, I hope this breakdown offers clarity and direction. Happy coding!

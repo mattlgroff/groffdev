@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
 import { Container } from 'src/components/Container'
 import { Prose } from 'src/components/Prose'
 import { formatDate } from 'src/lib/formatDate'
@@ -25,19 +24,6 @@ export function ArticleLayout({
   previousPathname,
 }) {
   let router = useRouter()
-
-  useEffect(() => {
-    fetch('/api/page-view', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: meta.slug,
-        referrer: document.referrer,
-      }),
-    })
-  }, [])
 
   if (isRssFeed) {
     return children

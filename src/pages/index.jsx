@@ -11,7 +11,6 @@ import { getAllArticles } from 'src/lib/getAllArticles'
 import logoUmbrage from 'src/images/logos/umbrage.svg'
 import logoAccenture from 'src/images/logos/accenture.svg'
 import logoBatakang from 'src/images/logos/batakang.webp'
-import { useEffect } from 'react'
 
 function BriefcaseIcon(props) {
   return (
@@ -101,19 +100,6 @@ function Resume() {
     },
   ]
 
-  const incrementResumePageView = async () => {
-    await fetch('/api/page-view', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: 'Resume',
-        referrer: document.referrer,
-      }),
-    })
-  }
-
   return (
     <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
       <h2 className="flex text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -159,7 +145,6 @@ function Resume() {
         download={true}
         variant="secondary"
         className="group mt-6 w-full"
-        onDownload={incrementResumePageView}
       >
         Download CV
         <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
@@ -169,19 +154,6 @@ function Resume() {
 }
 
 export default function Home({ articles }) {
-  useEffect(() => {
-    fetch('/api/page-view', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: 'Home Page',
-        referrer: document.referrer,
-      }),
-    })
-  }, [])
-
   return (
     <>
       <Head>

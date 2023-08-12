@@ -1,6 +1,5 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { useEffect } from 'react'
 import { Card } from 'src/components/Card'
 import { SimpleLayout } from 'src/components/SimpleLayout'
 import logoHome from 'src/images/logos/home.svg'
@@ -82,19 +81,6 @@ function LinkIcon(props) {
 }
 
 export default function Projects() {
-  useEffect(() => {
-    fetch('/api/page-view', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: 'Projects Page',
-        referrer: document.referrer,
-      }),
-    })
-  }, [])
-
   return (
     <>
       <Head>

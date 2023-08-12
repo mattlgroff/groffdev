@@ -2,7 +2,6 @@ import Head from 'next/head'
 import { Card } from 'src/components/Card'
 import { Section } from 'src/components/Section'
 import { SimpleLayout } from 'src/components/SimpleLayout'
-import { useEffect } from 'react'
 
 function ToolsSection({ children, ...props }) {
   return (
@@ -26,19 +25,6 @@ function Tool({ title, href, children }) {
 }
 
 export default function Uses() {
-  useEffect(() => {
-    fetch('/api/page-view', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: 'Uses Page',
-        referrer: document.referrer,
-      }),
-    })
-  }, [])
-
   const technologies = [
     {
       title: 'Apollo Server',

@@ -2,7 +2,6 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
 import clsx from 'clsx'
-import { useEffect } from 'react'
 import { Container } from 'src/components/Container'
 import { GitHubIcon, LinkedInIcon } from 'src/components/SocialIcons'
 import portraitImage from 'src/images/portrait.jpg'
@@ -33,19 +32,6 @@ function MailIcon(props) {
 }
 
 export default function About() {
-  useEffect(() => {
-    fetch('/api/page-view', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: 'About Page',
-        referrer: document.referrer,
-      }),
-    })
-  }, [])
-
   return (
     <>
       <Head>
