@@ -1,0 +1,237 @@
+import { ArticleLayout } from 'src/components/ArticleLayout';
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2023-10-01',
+  title:
+    'Crafting a Typescript NPM package with Bun - Function Agents',
+  description:
+    "Here's how I crafted a Typescript NPM package with Bun called Function Agents.",
+  slug: 'function-agents',
+};
+
+export default (props) => <ArticleLayout meta={meta} {...props} />;
+
+Here's how I crafted a Typescript NPM package with [Bun](https://bun.sh/) called [Function Agents](https://www.npmjs.com/package/function-agents):
+
+## The idea behind this package
+
+I keep finding myself solving the same problems across different projects and found myself copying a lot of code inbetween them to save time. I figured that I could save myself a lot of time by creating a package that I could import into my projects and use to solve these problems, while also inviting others to contribute their OpenAI Function Agents (as I like to call them).
+
+## What is a Function Agent?
+First, let's define what a Function Agent is. 
+
+Function - In this case I am referring to an OpenAI Function Call. This is an API call using OpenAI's Chat Completion API and passing in well-defined function definitons in the `functions` argument. The gpt model will, based upon the user's message, system message, and the function definition descriptions, figure out which functions, if any, it should call. This gives you perfect results nearly everytime, by taking the arguments JSON object. It's a neat trick, and I've found it to be very useful in my projects. Each of these Function Agent's are abusing this trick in some way or another to get very consistent results without the use of LangChain or much prompt engineering at all.
+
+Agent - This is a term I use loosely to the collection of Classes in the package. Each has a particular job to do and a persona to go along with it. We're letting OpenAI determine when to call a function, and with what parameters. The Agent guides the way with specific promptings and functions available in its toolset.
+
+## How to build a Typescript NPM Package with Bun
+With that out of the way let's get into the meat of this article. I'll be going over how I built this package using Bun.
+
+### Setting up the project
+```bash
+mkdir new-project
+cd new-project
+
+bun init
+
+# bun init helps you get started with a minimal project and tries to guess sensible defaults. Press ^C anytime to quit
+
+# package name (test-project): 
+# entry point (index.ts): 
+
+# Done! A package.json file was saved in the current directory.
+#  + index.ts
+#  + .gitignore
+#  + tsconfig.json (for editor auto-complete)
+#  + README.md
+
+# To get started, run:
+#   bun run index.ts
+```
+
+I moved the `index.ts` file to `src/index.ts` and updated the `package.json` file to reflect this change.
+
+The package.json that Bun makes looks like this:
+```json
+{
+  "name": "test-project",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+I'm going to share the `package.json` from `function-agents` and I'll highlight key pieces that are necessary:
+```json
+{
+  "name": "function-agents",
+  "module": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "version": "0.0.17",
+  "description": "A collection of Function Agents with specific purposes, utilizing the OpenAI API.",
+  "scripts": {
+    "build": "bun build --target=node ./src/index.ts --outfile=dist/index.js && bun run build:declaration",
+    "build:declaration": "tsc --emitDeclarationOnly --project tsconfig.types.json",
+    "postbuild": "rimraf tsconfig.types.tsbuildinfo"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "openai": "^4.11.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mattlgroff/function-agents.git"
+  },
+  "keywords": [
+    "OpenAI",
+    "agents",
+    "functions",
+    "function calling"
+  ],
+  "author": "Matthew Groff",
+  "license": "MIT",
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts"
+  ]
+}
+```
+
+#### Scripts
+```json
+  "scripts": {
+    "build": "bun build --target=node ./src/index.ts --outfile=dist/index.js && bun run build:declaration",
+    "build:declaration": "tsc --emitDeclarationOnly --project tsconfig.types.json",
+    "postbuild": "rimraf tsconfig.types.tsbuildinfo"
+  }
+```
+
+* `build` - This is the script that builds the package. It uses Bun to build the package and then runs the `build:declaration` script. It does not include Type declaration, and Bun doesn't so this right now as of 1.0.3. So we added the following command to use `tsc` to build typeDefs into our `/dist` folder.
+* `build:declaration` - This script uses `tsc` to build the typeDefs into our `/dist` folder.
+* `postbuild` - This script removes the `tsconfig.types.tsbuildinfo` file that is created when we run `build:declaration`. This is a file that is created by `tsc` and is not needed in our package. If it's not deleted, then running `bun run build` will not generate type definitions.
+
+#### Main and Types
+```json
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+```
+
+* `main` - This is the entry point for our package. It's the file that will be run when someone imports our package. It's pointed towards the `/dist` folder, which is where our built code will be.
+* `types` - This is the entry point for our type definitions. It's pointed towards the `/dist` folder, which is where our built type definitions will be.
+
+#### Files
+```json
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts"
+  ]
+```
+
+For whatever reason, `npm publish` wasn't picking up all of the files in the `/dist` folder (it was missing type defs), so I had to add this to the `package.json` file. This tells `npm publish` to include all of the `.js` and `.d.ts` files in the `/dist` folder.
+
+### tsconfig nightmare
+Since Bun doesn't support generating type declaration files, I needed to make a separate tsconfig.types.json. Here's my two files below and I hope that they help you avoid the troubleshooting I had to get the types building.
+
+#### `tsconfig.json`
+```json
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": { 
+      "@/*": ["src/*"]
+    },
+    "lib": ["ESNext"],
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "composite": true,
+    "strict": true,
+    "downlevelIteration": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "types": [
+      "bun-types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
+```
+
+#### `tsconfig.types.json`
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
+```
+
+### The index.ts file
+```typescript
+// Export Types
+export {
+    ChatCompletionMessageWithFunction,
+    FunctionAgentCodeResponse,
+    FunctionAgentJsonResponse,
+    FunctionAgentMessageResponse,
+    FunctionAgentMessageResponseWithCitation,
+} from './types';
+export { MathInput, MathResult } from './agents/math';
+export { Intent } from './agents/intent-classification';
+
+// Export Agents
+export { default as CitationAgent } from './agents/citation';
+export { default as DataTransformationAgent } from './agents/data-transformation';
+export { default as IntentClassificationAgent } from './agents/intent-classification';
+export { default as JavaScriptCodeInterpreterAgent } from './agents/javascript-code-interpreter';
+export { default as JavaScriptFunctionCallTransformationAgent } from './agents/javascript-function-call-transformation';
+export { default as JavascriptDeveloperAgent } from './agents/javascript-developer';
+export { default as MathAgent } from './agents/math';
+export { default as SentimentClassificationAgent } from './agents/sentiment-classification';
+```
+
+This is the central file, the entry point for our package. It's where we export all of our types and agents. Think of it as a table of content. If I make a new agent or type that I want consumes of `function-agents` to be able to import, I have to add it here to `index.ts` and run the build command (`bun run build`) again.
+
+### Publish to NPM
+```bash
+npm login
+
+npm publish
+```
+
+## Conclusion
+Combining my full-stack Typescript experience with Generative AI has been a lot of fun. I'm excited to see what others do with this package and what Function Agents they create. Feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/mattgroff/).

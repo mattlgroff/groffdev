@@ -11,6 +11,15 @@ import logoNpm from 'src/images/logos/npm.svg'
 
 const projects = [
   {
+    name: 'NPM Package: function-agents',
+    description: "A collection of Function Agents with specific purposes, designed to simplify various tasks. Data Transformation, Sentiment Analysis, Intent Classification, Citation, and more.",
+    link: {
+      href: 'https://www.npmjs.com/package/function-agents',
+      label: 'npmjs.com/package/function-agents',
+    },
+    logo: logoNpm,
+  },
+  {
     name: 'Estimation Party',
     description: "A simple solution to Planning Poker. Create a room, invite your team, and start estimating. I built this full-stack realtime application using Next.js and Supabase.",
     link: {
