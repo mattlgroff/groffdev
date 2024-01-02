@@ -73,14 +73,22 @@ function Resume() {
   const resume = [
     {
       company: 'Umbrage',
-      title: 'Director of Engineering',
+      title: 'Principal AI Engineer',
       logo: logoUmbrage,
       location: 'Houston, TX (Remote)',
-      start: '2019',
+      start: 'January 2024',
       end: {
         label: 'Present',
         dateTime: new Date().getFullYear(),
       },
+    },
+    {
+      company: 'Umbrage',
+      title: 'Director of Engineering',
+      logo: logoUmbrage,
+      location: 'Houston, TX (Remote)',
+      start: 'December 2019',
+      end: 'December 2023',
     },
     {
       company: 'Accenture Digital Products (formally Intrepid)',

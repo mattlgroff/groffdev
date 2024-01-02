@@ -112,6 +112,10 @@ export default function About() {
               </p>
 
               <p>
+                In January, 2024 I got promoted to Principal AI Engineer and I am now leading AI initiatives at Umbrage.
+              </p>
+
+              <p>
                 In the present day, I reside in Orlando, Florida, working
                 remotely for Umbrage. When I&apos;m not immersed in software
                 engineering, you can find me enjoying quality time with my wife
