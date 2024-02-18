@@ -1,0 +1,52 @@
+import { ArticleLayout } from 'src/components/ArticleLayout';
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2024-02-18',
+  title:
+    'Ingesting PDFs using OpenAI GPT-4 Vision',
+  description:
+    "Being smart about how we ingest PDFs is crucial. Here's how I used OpenAI's GPT-4 Vision to convert them to Markdown.",
+  slug: 'ingesting-pdfs-with-gpt-vision',
+};
+
+export default (props) => <ArticleLayout meta={meta} {...props} />;
+
+When it comes to document processing and analysis, PDFs represent a significant challenge. They're everywhere, from academic papers to business reports, but their unstructured nature makes it difficult to extract and understand the information they contain. This is where AI can play a crucial role, helping us transform PDFs into a more structured and machine-readable format.
+
+I've found that simply extracting text from PDFs using python based tools is not exact. Some PDFs work better than others. Some might pull pieces from images and some might not. What we really want is to extract meaning from the document. Missing out on infographics means missing out on meaning.
+
+Around 9 months ago I was tasked with building a RAG ChatBot at work for a retail chain that sells food. I was given two documents: an employee training manual and a food safety guide.
+
+At the time, the strategy I heard from other teams was to extract the text from the PDFs and split them up by every 1,000 characters into many "chunks." I had an engineer on another team swear up and down that the chunking strategy did not effect correctness of the ChatBot.
+
+Being the stubborn engineer I am I decided to manually go through the employee training manual and split it up into logical sections of text myself into Markdown files. If there was an infographic or a table I would manually type it out in Markdown. I did this for both documents. 
+
+That 1,000 character chunking strategy from the other team? It didn't include these infographics or tables, which took up a lot of the content, especially around food safety and procedures.
+
+While the other team at the time had early access to the GPT-4 API, we were stuck on GPT-3, but still our ChatBot was able to answer questions about food safety and procedures with a much higher accuracy than the other team's ChatBot.
+
+## Why Markdown Matters for LLMs
+
+OpenAI uses Markdown as one of the formats for prompting ChatGPT. It's a testament to Markdown's clear and structured nature, making it an ideal format for LLMs to parse and understand. If you try to pass in chunks of retrieved text into the context of a prompt to an LLM and it's nested inside JSON you won't have reliable results. If Markdown is good enough for OpenAI, it's good enough for me.
+
+## The Journey from PDF to Markdown
+
+The process begins with the conversion of PDF documents into images, one for each page, using the `pdf2image` library. This step is essential for capturing the entire content of the PDF, including charts and images that might be lost in simple text extractions.
+
+Once we have these images, we leverage OpenAI's GPT-4 Vision to interpret and convert them into Markdown text. GPT-4 Vision's advanced capabilities allow it to understand complex layouts and visuals, ensuring that the converted Markdown retains the richness and structure of the original PDF. It is prompted to retain the original layout to the best of it's ability. We then have another pass of each Markdown file using GPT-4 Turbo to remove any irrelevant pieces like pretend images in the markdown, logos, pagent numbers, etc.
+
+This project, encapsulated in a set of Python scripts, provides a seamless workflow for converting PDFs into Markdown format. It includes:
+
+- `image_splitter.py`: Converts a PDF into individual page images, stored in a `page_jpegs` folder.
+- `image_to_markdown.py`: Processes each page image through GPT-4 Vision, converting it to Markdown and storing the results in a `page_markdowns` folder.
+- `cleanup_markdown.py`: Refines the Markdown output, removing irrelevant content and ensuring a consistent structure.
+- `stitch_markdown_pages.py` (Optional) Combines all cleaned markdown pages into one coherent Markdown document.
+
+## Conclusion
+
+While this approach isn't perfect, it's a significant step forward in the quest to make PDFs more accessible and machine-readable. Manually ingesting PDFs by hand into markdown is not scalable. Just extracting text and breaking into 1,000 character chunks wasn't the answer either.
+
+Here's [the GitHub repo](https://github.com/mattlgroff/pdf-to-markdown) with the scripts that I mentioned above.
+
+I hope you find this approach useful and that it inspires you to explore the potential of AI in transforming unstructured data into a more structured and meaningful format. If you have any questions or ideas for improvement, feel free to reach out to me on [LinkedIn](https://www.linkedin.com/in/mattgroff). 
