@@ -73,7 +73,7 @@ function Resume() {
   const resume = [
     {
       company: 'Umbrage',
-      title: 'Principal AI Engineer',
+      title: 'Principal AI Engineer | AI Capability Lead',
       logo: logoUmbrage,
       location: 'Houston, TX (Remote)',
       start: 'January 2024',
@@ -178,9 +178,9 @@ export default function Home({ articles }) {
             Software engineer, husband, and dog dad.
           </h1>
           <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
-            I&apos;m Matthew Groff, a software engineer based in Orlando, FL. I
+            I&apos;m Matthew Groff, a AI and web software engineer based in Orlando, FL. I
             work remotely, focusing on developing applications and crafting
-            solutions for different industries. When I&apos;m not working I
+            solutions for different industries. I lead the AI Capability at Umbrage, part of Bain & Company. I manage developers and data scientists. When I&apos;m not working I
             enjoy spending time with my wife and dog, playing video games, and
             visiting the local Orlando attractions. My posts and opinions are my
             personal views and not those of my employer. Bain & Company does not
