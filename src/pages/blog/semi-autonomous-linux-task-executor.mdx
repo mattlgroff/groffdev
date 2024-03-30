@@ -1,0 +1,114 @@
+import { ArticleLayout } from 'src/components/ArticleLayout'
+
+export const meta = {
+  author: 'Matthew Groff',
+  date: '2024-03-29',
+  title: 'SALTE: Semi-Autonomous Linux Task Executor',
+  description: "Comparing Ollama w/ Mixtral vs GPT-4 for my command line application SALTE: Semi-Autonomous Linux Task Executor",
+  slug: 'semi-autonomous-linux-task-executor',
+}
+
+export default (props) => <ArticleLayout meta={meta} {...props} />
+
+I've been working on a little side project I've entitled SALTE the Semi-Autonomous Linux Task Executor. 
+
+After coming back from NVIDIA GTC 2024 I was inspired to create my own semi-autonomous system that could help me automate tasks on the linux command line. Two talks that really inspired me were "Generally Capable Agents in Open-Ended Worlds" by Jim Fan and "Fireside Chat With Kanjun Qiu and Bryan Catanzaro: Building Practical AI Agents that Reason and Code at Scale" by Bryan Catanzaro and Kanjun Qiu.
+
+The insights I found around Agents were:
+- Give the Agent an overall task to achieve​
+- Use GPT-4 to generate the multi-step plan to accomplish the task​
+- Create an "ambiguity" Agent to see if we need to ask the human for clarification or to make a choice​
+- Define the "virtual world" of the Agent. What can it do? What are the rules and restrictions?​
+- Provide context. Text representation of the world, what's happening ​
+- Use "self-reflection" to see if an Agent completed a step correctly​
+- Use GPT-4 to write Unit Tests for code before the actual code (Test-driven development)​
+- Use GPT-4 to write add new Skills to it's Skill Library with code
+
+For the first version of SALTE I was using `gpt-4` for every prompt, which so far is "ambiguity_check", "rewrite_user_provided_task", and "plan_task". I was getting good results but GPT-4 is still the most expensive model to use. I decided to try out [`ollama` with `mixtral`](https://ollama.com/library/mixtral) to see if I could get similar results for a cheaper price. Ollama, for those unfamiliar, is a simple tool to "get up and running with large language models, locally" according to their website and I find that to be true.
+
+Swapping over to Ollama meant giving up on OpenAI Function Calling which I've come to rely on as a neat trick to not only ensure JSON output, but with the right key value pairs and types.
+
+Ollama plans to support this in the future but as of March 29th, 2024 it's not available. However, I can use the same OpenAI package as GPT-4 and the response_mode JSON option thanks to a recent update to Ollama. I still had to rewrite my code to show apples to apples but it wasn't too painful. A little prompt engineering to get my desired result was the biggest change.
+
+
+## Ambiguity Test on Ollama w/ Mixtral
+```
+Please enter your task for SALTE: Delete the temporary files
+
+Task: Delete the temporary files
+
+Checking task for ambiguity...
+
+Response time from mixtral for 'check_for_ambiguity': 3.4046363830566406
+
+Ambiguity detected: What is the file extension of the temporary files and what folder did you mean?
+
+Your response: .tmp files in /var/tmp
+
+Response time from mixtral for 'rewrite_user_provided_task': 2.9240119457244873
+
+Revised task:  Delete all .tmp files in the /var/tmp directory.
+
+Task:  Delete all .tmp files in the /var/tmp directory.
+
+Checking task for ambiguity...
+
+Response time from mixtral for 'check_for_ambiguity': 7.001227617263794
+
+Ambiguity detected: Is it necessary to backup or preserve any of the .tmp files in the /var/tmp directory before deleting them?
+
+Your response: no
+
+Response time from mixtral for 'rewrite_user_provided_task': 3.564596652984619
+
+Revised task:  Delete all .tmp files in the /var/tmp directory without backing up or preserving any of them.
+
+Task:  Delete all .tmp files in the /var/tmp directory without backing up or preserving any of them.
+
+Checking task for ambiguity...
+
+Response time from mixtral for 'check_for_ambiguity': 9.077196836471558
+
+Ambiguity detected: You asked me to delete all .tmp files in the /var/tmp directory. Are there any specific .tmp files you want me to delete, or should I proceed with deleting all .tmp files in that directory?
+```
+
+Not exactly the desired income. Ollama and Mixtral don't have the same reasoning capabilities of GPT-4 that make it such a good ambiguity checker. It kept detecting ambiguties that were not there. Quality, not so good. Speed, not so fast either even on my rig with an RTX 4090 with 24GB of VRAM.
+
+## Ambiguity Test on OpenAI GPT-4
+```
+Please enter your task for SALTE: Delete the temporary files
+
+Task: Delete the temporary files
+
+Checking task for ambiguity...
+
+Response time from gpt-4 for 'check_for_ambiguity': 2.17018461227417
+
+Ambiguity detected: Could you please specify the location and/or the name pattern or extension of the temporary files you want to delete?
+
+Your response: .tmp files in /var/tmp
+
+Response time from gpt-4 for 'rewrite_user_provided_task': 1.2635109424591064
+
+Revised task: Delete .tmp files located in /var/tmp directory.
+
+Task: Delete .tmp files located in /var/tmp directory.
+
+Checking task for ambiguity...
+
+Response time from gpt-4 for 'check_for_ambiguity': 0.6644225120544434
+
+Task is clear and ready for execution. Proceeding with the task.
+
+Final task: Delete .tmp files located in /var/tmp directory.
+```
+
+Working as intended, using Function Calling, fast, but not cheap.
+
+You can find the GPT-4 Ambiguity code on the `master` branch of my [SALTE GitHub repository](https://github.com/mattlgroff/salte/tree/master).
+
+You can find the Ollama w/ Mixtral Ambiguity code on the `ollama` branch of my [SALTE GitHub repository](https://github.com/mattlgroff/salte/tree/ollama).
+
+Overall I'm excited for a future where better reasoning LLMs are available locally, but I don't think that day is here today. I'll be sticking with GPT-4 for now, but Claude's Opus 3 might give it a run for it's money. 
+
+I'd love to hear your thoughts on [LinkedIn](https://www.linkedin.com/in/mattgroff/).
