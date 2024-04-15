@@ -1,16 +1,16 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Button } from 'src/components/Button'
-import { Card } from 'src/components/Card'
-import { Container } from 'src/components/Container'
-import { GitHubIcon, LinkedInIcon } from 'src/components/SocialIcons'
-import { formatDate } from 'src/lib/formatDate'
-import { generateRssFeed } from 'src/lib/generateRssFeed'
-import { getAllArticles } from 'src/lib/getAllArticles'
-import logoUmbrage from 'src/images/logos/umbrage.svg'
-import logoAccenture from 'src/images/logos/accenture.svg'
-import logoBatakang from 'src/images/logos/batakang.webp'
+import Head from 'next/head';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from 'src/components/Button';
+import { Card } from 'src/components/Card';
+import { Container } from 'src/components/Container';
+import { GitHubIcon, LinkedInIcon } from 'src/components/SocialIcons';
+import { formatDate } from 'src/lib/formatDate';
+import { generateRssFeed } from 'src/lib/generateRssFeed';
+import { getAllArticles } from 'src/lib/getAllArticles';
+import logoUmbrage from 'src/images/logos/umbrage.svg';
+import logoAccenture from 'src/images/logos/accenture.svg';
+import logoBatakang from 'src/images/logos/batakang.webp';
 
 function BriefcaseIcon(props) {
   return (
@@ -32,7 +32,7 @@ function BriefcaseIcon(props) {
         className="stroke-zinc-400 dark:stroke-zinc-500"
       />
     </svg>
-  )
+  );
 }
 
 function ArrowDownIcon(props) {
@@ -45,7 +45,7 @@ function ArrowDownIcon(props) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
 
 function Article({ article }) {
@@ -58,7 +58,18 @@ function Article({ article }) {
       <Card.Description>{article.description}</Card.Description>
       <Card.Cta>Read blog post</Card.Cta>
     </Card>
-  )
+  );
+}
+
+function CalendarIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4Zm1 2v14h14V6H4Zm2 2h10v2H5V8Zm0 4h10v2H5v-2Zm0 4h7v2H5v-2Z"
+      />
+    </svg>
+  );
 }
 
 function SocialLink({ icon: Icon, ...props }) {
@@ -66,7 +77,7 @@ function SocialLink({ icon: Icon, ...props }) {
     <Link className="group -m-1 p-1" {...props}>
       <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600 dark:fill-zinc-400 dark:group-hover:fill-zinc-300" />
     </Link>
-  )
+  );
 }
 
 function Resume() {
@@ -106,7 +117,7 @@ function Resume() {
       start: '2013',
       end: '2018',
     },
-  ]
+  ];
 
   return (
     <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
@@ -158,7 +169,7 @@ function Resume() {
         <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
       </Button>
     </div>
-  )
+  );
 }
 
 export default function Home({ articles }) {
@@ -178,13 +189,15 @@ export default function Home({ articles }) {
             Software engineer, husband, and dog dad.
           </h1>
           <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
-            I&apos;m Matthew Groff, a AI and web software engineer based in Orlando, FL. I
-            work remotely, focusing on developing applications and crafting
-            solutions for different industries. I lead the AI Capability at Umbrage, part of Bain & Company. I manage developers and data scientists. When I&apos;m not working I
-            enjoy spending time with my wife and dog, playing video games, and
-            visiting the local Orlando attractions. My posts and opinions are my
-            personal views and not those of my employer. Bain & Company does not
-            endorse any content or opinions shared on this account.
+            I&apos;m Matthew Groff, a AI and web software engineer based in
+            Orlando, FL. I work remotely, focusing on developing applications
+            and crafting solutions for different industries. I lead the AI
+            Capability at Umbrage, part of Bain & Company. I manage developers
+            and data scientists. When I&apos;m not working I enjoy spending time
+            with my wife and dog, playing video games, and visiting the local
+            Orlando attractions. My posts and opinions are my personal views and
+            not those of my employer. Bain & Company does not endorse any
+            content or opinions shared on this account.
           </p>
           <div className="mt-6 flex gap-6">
             <SocialLink
@@ -197,6 +210,14 @@ export default function Home({ articles }) {
               aria-label="Follow on LinkedIn"
               icon={LinkedInIcon}
             />
+            <div class="flex">
+              <p class="text-zinc-600 dark:text-zinc-400 mr-2">Schedule a meeting:</p>
+              <SocialLink
+                href="https://calendly.com/mattgroff/30min"
+                aria-label="Schedule a 30-minute meeting with Matthew Groff"
+                icon={CalendarIcon}
+              />
+            </div>
           </div>
         </div>
       </Container>
@@ -213,12 +234,12 @@ export default function Home({ articles }) {
         </div>
       </Container>
     </>
-  )
+  );
 }
 
 export async function getStaticProps() {
   if (process.env.NODE_ENV === 'production') {
-    await generateRssFeed()
+    await generateRssFeed();
   }
 
   return {
@@ -227,5 +248,5 @@ export async function getStaticProps() {
         .slice(0, 4)
         .map(({ component, ...meta }) => meta),
     },
-  }
+  };
 }

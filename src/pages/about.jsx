@@ -1,10 +1,10 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import Link from 'next/link'
-import clsx from 'clsx'
-import { Container } from 'src/components/Container'
-import { GitHubIcon, LinkedInIcon } from 'src/components/SocialIcons'
-import portraitImage from 'src/images/portrait.jpg'
+import Head from 'next/head';
+import Image from 'next/image';
+import Link from 'next/link';
+import clsx from 'clsx';
+import { Container } from 'src/components/Container';
+import { GitHubIcon, LinkedInIcon } from 'src/components/SocialIcons';
+import portraitImage from 'src/images/portrait.jpg';
 
 function SocialLink({ className, href, children, icon: Icon }) {
   return (
@@ -17,7 +17,7 @@ function SocialLink({ className, href, children, icon: Icon }) {
         <span className="ml-4">{children}</span>
       </Link>
     </li>
-  )
+  );
 }
 
 function MailIcon(props) {
@@ -28,7 +28,18 @@ function MailIcon(props) {
         d="M6 5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3H6Zm.245 2.187a.75.75 0 0 0-.99 1.126l6.25 5.5a.75.75 0 0 0 .99 0l6.25-5.5a.75.75 0 0 0-.99-1.126L12 12.251 6.245 7.187Z"
       />
     </svg>
-  )
+  );
+}
+
+function CalendarIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path
+        fillRule="evenodd"
+        d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4Zm1 2v14h14V6H4Zm2 2h10v2H5V8Zm0 4h10v2H5v-2Zm0 4h7v2H5v-2Z"
+      />
+    </svg>
+  );
 }
 
 export default function About() {
@@ -112,7 +123,8 @@ export default function About() {
               </p>
 
               <p>
-                In January, 2024 I got promoted to Principal AI Engineer and I am now leading AI initiatives at Umbrage.
+                In January, 2024 I got promoted to Principal AI Engineer and I
+                am now leading AI initiatives at Umbrage.
               </p>
 
               <p>
@@ -148,10 +160,17 @@ export default function About() {
               >
                 mattlgroff@gmail.com
               </SocialLink>
+              <SocialLink
+                href="https://calendly.com/mattgroff/30min"
+                icon={CalendarIcon}
+                className="mt-4"
+              >
+                Book 30-minutes with Matthew Groff
+              </SocialLink>
             </ul>
           </div>
         </div>
       </Container>
     </>
-  )
+  );
 }
