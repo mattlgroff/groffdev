@@ -11,6 +11,15 @@ import logoNpm from 'src/images/logos/npm.svg'
 
 const projects = [
   {
+    name: 'Markdownloader',
+    description: "A tiny Chrome extension that only does one thing: downloads the current page's html content as a Markdown file (.md).",
+    link: {
+      href: 'https://chromewebstore.google.com/detail/markdownloader/fabfmkkhhofgienhkbcagjfahbeehiao',
+      label: 'Markdownloader Extension on the Chrome Web Store',
+    },
+    logo: logoBun,
+  },
+  {
     name: 'NPM Package: function-agents',
     description: "A collection of Function Agents with specific purposes, designed to simplify various tasks. Data Transformation, Sentiment Analysis, Intent Classification, Citation, and more.",
     link: {
